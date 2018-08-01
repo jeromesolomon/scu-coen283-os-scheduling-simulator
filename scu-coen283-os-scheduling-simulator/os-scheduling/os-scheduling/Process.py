@@ -2,6 +2,8 @@ import numpy as np
 import random
 from collections import deque
 
+# this class supports IO only on one channel like the examples given in lecture
+
 
 class Process:
 
@@ -16,6 +18,12 @@ class Process:
             processTimes.append(int(round(np.random.normal(burstMean, burstSD))))
             io.append(int(round(np.random.normal(ioMean, ioSD))))
 
+    def getTime(self):
+        # returns time to next action regardless of whether blocked or processing.
+        if self.blocked:
+            return self.blocker
+        return self.processTimes[0]
+
     def decrement(self, value):
         if self.blocked:
             self.decrementIOTime(value)
@@ -28,11 +36,11 @@ class Process:
 
         if processTimes[0] == 0:
             processTimes.popleft()  # remove the process time
-            self.blocked = True  # set blocked flag
+            self.blocked = True  # block process
             self.blocker = io.popleft()  # our blocker is now the current time
 
     def decrementIOTime(self, value):
         self.blocker -= value
         if self.blocker == 0:
-            self.blocker = None
-            self.blocked = False
+            self.blocker = None  # remove blocker
+            self.blocked = False  # unblock process
