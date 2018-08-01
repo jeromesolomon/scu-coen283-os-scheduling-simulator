@@ -6,10 +6,10 @@ import random
 class Process:
 
     def __init__(self, numBursts, burstMean, burstSD, ioOperationList):
-        processTimes = list()  # this is a list of integer times representing the duration of each process burst
-        io = list()  # this is a list of all the io operations that happen between processor bursts
-        blocked = False
-        blocker = None
+        self.processTimes = list()  # this is a list of integer times representing the duration of each process burst
+        self.io = list()  # this is a list of all the io operations that happen between processor bursts
+        self.blocked = False
+        self.blocker = None
         for i in range(numBursts):
             processTimes.append(int(round(np.random.normal(burstMean, burstSD))))
             io.append(ioOperationList[random.randint(0, len(ioOperationList))])
