@@ -1,27 +1,38 @@
 import numpy as np
-import IO
 import random
+from collections import deque
 
 
 class Process:
 
-    def __init__(self, numBursts, burstMean, burstSD, ioOperationList):
-        self.processTimes = list()  # this is a list of integer times representing the duration of each process burst
-        self.io = list()  # this is a list of all the io operations that happen between processor bursts
-        self.blocked = False
-        self.blocker = None
+    def __init__(self, numBursts, burstMean, burstSD, ioMean, ioSD):
+        # this represents the process beginning at the new state
+        self.processTimes = deque()  # this is a list of integer times representing the duration of each process burst
+        self.io = deque()  # this is a list of all the io operations that happen between processor bursts
+        self.blocked = False  # initialized to not blocked
+        self.blocker = None  # nothing blocking process yet
         for i in range(numBursts):
+            # generate a random time statistically for both process burst time and io time
             processTimes.append(int(round(np.random.normal(burstMean, burstSD))))
-            io.append(ioOperationList[random.randint(0, len(ioOperationList))])
+            io.append(int(round(np.random.normal(ioMean, ioSD))))
 
     def decrement(self, value):
-        currentVal = self.processTimes.pop()
-        currentVal -= value
-        if currentVal == 0:
-            self.blocked = True
-            self.blocker = io.pop()
+        if self.blocked:
+            self.decrementIOTime(value)
+        else:
+            self.decrementProcessTime(value)
 
-    def unblock(self, ioObject):
-        if(ioObject == self.blocker):
-            self.blocked = False
+    def decrementProcessTime(self, value):
+
+        processTimes[0] -= value
+
+        if processTimes[0] == 0:
+            processTimes.popleft()  # remove the process time
+            self.blocked = True  # set blocked flag
+            self.blocker = io.popleft()  # our blocker is now the current time
+
+    def decrementIOTime(self, value):
+        self.blocker -= value
+        if self.blocker == 0:
             self.blocker = None
+            self.blocked = False
