@@ -9,6 +9,7 @@ class Machine:
     ready = deque()
     running = None
     blocked = deque()
+    exit = deque()
 
     def add(process):
         new.append(process)
@@ -34,7 +35,7 @@ class Machine:
             return False  # this means that the new queue is empty, the running state is empty, and the blocked queue is empty
 
         delta = min(times)
-
+        machineTime += delta
         if len(new) > 0 and new[0].decrement(delta):
             # if there is a new process and this time advancement zeroes out the delay of the frontmost process
             ready.append(new.popleft())  # take process from new and put it into ready
@@ -42,7 +43,10 @@ class Machine:
         if running != None:
             if running.decrement(delta):
                 # if there is something running and this time advancement zeroes out its burst time
-                blocked.append(running)  # it's blocked now (internal flagging happened already)
+                if running.finished:
+                    exit.append(running)  # add to the finished queue
+                else:
+                    blocked.append(running)  # it's blocked now (internal flagging happened already)
                 running = None  # set running to None
             elif preempt:  # when preemption happens, it always removes the process from running and puts it into ready
                 ready.append(running)  # put it back into the ready queue

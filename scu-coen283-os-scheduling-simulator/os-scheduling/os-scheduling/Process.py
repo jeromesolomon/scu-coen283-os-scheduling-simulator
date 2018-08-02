@@ -7,11 +7,14 @@ from collections import deque
 
 class Process:
 
-    def __init__(self, numBursts, burstMean, burstSD, ioMean, ioSD, delay):
+    def __init__(self, processID, numBursts, burstMean, burstSD, ioMean, ioSD, delay):
         # this represents the process beginning at the new state
+
+        self.processID = processID
 
         self.delay = delay
         self.new = True
+        self.finished = False
         self.processTimes = deque()  # this is a list of integer times representing the duration of each process burst
         self.io = deque()  # this is a list of all the io operations that happen between processor bursts
         self.blocked = False  # initialized to not blocked
@@ -50,6 +53,9 @@ class Process:
 
         if processTimes[0] <= 0:
             processTimes.popleft()  # remove the process time
+            if len(processTimes) == 0:  # if no more processes left
+                self.finished = True  # set finished flag
+                return True  # notify that process time was zeroed out
             self.blocked = True  # block process
             self.blocker = io.popleft()  # our blocker is now the current time
             return True  # notify that process time was zeroed out
