@@ -9,6 +9,7 @@ class Process:
 
     def __init__(self, numBursts, burstMean, burstSD, ioMean, ioSD, delay):
         # this represents the process beginning at the new state
+
         self.delay = delay
         self.new = True
         self.processTimes = deque()  # this is a list of integer times representing the duration of each process burst
@@ -47,7 +48,7 @@ class Process:
 
         processTimes[0] -= value
 
-        if processTimes[0] == 0:
+        if processTimes[0] <= 0:
             processTimes.popleft()  # remove the process time
             self.blocked = True  # block process
             self.blocker = io.popleft()  # our blocker is now the current time
@@ -56,7 +57,7 @@ class Process:
 
     def decrementIOTime(self, value):
         self.blocker -= value
-        if self.blocker == 0:
+        if self.blocker <= 0:
             self.blocker = None  # remove blocker
             self.blocked = False  # unblock process
             return True  # notify that IO time was zeroed out

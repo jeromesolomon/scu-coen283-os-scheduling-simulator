@@ -1,4 +1,5 @@
 import from collections deque
+import Process
 
 
 class Machine:
@@ -15,6 +16,8 @@ class Machine:
     def advanceTime():
         # returns False if time was not advanced, True if it was
         # newTime is the time until arrival
+
+        preempt = False  # this should get set if a preemption happens
         newTime = machineTime - new[0].getTime() if len(new) > 0 else None
         runningTime = None if running == None else running.getTime()
         blockedTime = None if len(blocked) == 0 else blocked[0].getTime()
@@ -36,12 +39,14 @@ class Machine:
             # if there is a new process and this time advancement zeroes out the delay of the frontmost process
             ready.append(new.popleft())  # take process from new and put it into ready
 
-        if running != None and running.decrement(delta):
-            # if there is something running and this time advancement zeroes out its burst time
-            blocked.append(running)  # it's blocked now (internal flagging happened already)
-            running = None  # set running to None first
-            if(len(ready) > 0):  # if there's something to be run
-                running = ready.popleft()  # put it into the running spot
+        if running != None:
+            if running.decrement(delta):
+                # if there is something running and this time advancement zeroes out its burst time
+                blocked.append(running)  # it's blocked now (internal flagging happened already)
+                running = None  # set running to None
+            elif preempt:  # when preemption happens, it always removes the process from running and puts it into ready
+                ready.append(running)  # put it back into the ready queue
+                running = None  # set running to None
 
         if len(ready) > 0 and running == None:  # if there's something ready and nothing running
             running = ready.popleft()  # take the frontmost element out of the ready queue and put it into the running spot
