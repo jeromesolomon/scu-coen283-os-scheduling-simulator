@@ -10,7 +10,7 @@ class Machine:
     blocked = deque()
 
     def add(process):
-        ready.append(process)
+        new.append(process)
 
     def advanceTime():
         # returns False if time was not advanced, True if it was
