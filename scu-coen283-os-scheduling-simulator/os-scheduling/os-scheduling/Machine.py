@@ -86,7 +86,7 @@ class Machine:
                 if self.running.finished:
                     self.exit.append(self.running)  # add to the finished queue
                 else:
-                    self.blocked.append(self.running)  # it's self.blocked now (internal flagging happened alself.ready)
+                    self.blocked.append(self.running)  # it's self.blocked now (internal flagging happened already)
                 self.running = None  # set running to None
             elif preempt:  # when preemption happens, it always removes the process from running and puts it into self.ready
                 self.ready.append(self.running)  # put it back into the self.ready queue
