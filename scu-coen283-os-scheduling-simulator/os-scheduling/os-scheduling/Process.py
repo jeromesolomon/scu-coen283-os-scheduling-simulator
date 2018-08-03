@@ -21,8 +21,30 @@ class Process:
         self.blocker = None  # nothing blocking process yet
         for i in range(numBursts):
             # generate a random time statistically for both process burst time and io time
-            processTimes.append(int(round(np.random.normal(burstMean, burstSD))))
-            io.append(int(round(np.random.normal(ioMean, ioSD))))
+            self.processTimes.append(int(round(np.random.normal(burstMean, burstSD))))
+            if i < numBursts-1:
+                io.append(int(round(np.random.normal(ioMean, ioSD))))
+
+    def __str__(self):
+        result = ""
+        result = result + "process ID: " + str(self.processID) + "\n"
+        '''
+        result = result + "new: " + str(self.new) + "\n"
+        result = result + "finished: " + str(self.finished) + "\n"
+        result = result + "process times: " + "\n"
+        if len(self.processTimes) > 0:
+            for i in self.processTimes:
+                result = result + str(i) + " "
+            result = result + "\n"
+        result = result + "io times" + "\n"
+        if len(self.io) > 0:
+            for i in self.io:
+                result = result + str(i) + " "
+            result = result + "\n"
+        result = result + "blocked: " + str(self.blocked) + "\n"
+        result = result + "blocker: " + str(self.blocker) + "\n"
+        '''
+        return result
 
     def getTime(self):
         # returns time to next action regardless of whether blocked or processing.
@@ -42,18 +64,20 @@ class Process:
 
     def decrementDelayTime(self, value):
         self.delay -= value  # remove process time
-        if delay <= 0:  # if i don't have to wait any more
-            new = False  # i'm not new any more
+        if self.delay <= 0:  # if i don't have to wait any more
+            print("went from new to ready!!!!")
+            self.new = False  # i'm not new any more
             return True  # notify that delay time was zeroed out
         return False
 
     def decrementProcessTime(self, value):
 
-        processTimes[0] -= value
+        self.processTimes[0] -= value
 
-        if processTimes[0] <= 0:
-            processTimes.popleft()  # remove the process time
-            if len(processTimes) == 0:  # if no more processes left
+        if self.processTimes[0] <= 0:
+            self.processTimes.popleft()  # remove the process time
+            if len(self.processTimes) == 0:  # if no more processes left
+                print("setting finished!")
                 self.finished = True  # set finished flag
                 return True  # notify that process time was zeroed out
             self.blocked = True  # block process
