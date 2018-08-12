@@ -15,40 +15,48 @@ class Machine:
     def add(self, process):
         self.new.append(process)
 
-    def __str__(self):
-        mystring = "---------------------------------------------" + "\n"
-        mystring = mystring + "machine time: " + str(self.machineTime) + "\n"
+    def __strqueue(self,qname,q):
+        """
+        Private method used to print a queue neatly.
+        :param qname: name of the queue
+        :param q: the queue
+        :return: a string
+        """
 
-        mystring = mystring + "New queue" + "\n"
-        if len(self.new) > 0:
+        mystring = ""
+        mystring += qname + ":" + "\n"
+        if len(self.new) == 0:
+            mystring += "\t" + "<empty>" + "\n"
+        else:
             for p in self.new:
-                mystring = mystring + str(p) + " "
-            mystring = mystring + "\n"
+                mystring += "\t" + str(p) + "\n"
 
-        mystring = mystring + "Ready queue" + "\n"
-        if len(self.ready) > 0:
-            for p in self.ready:
-                mystring = mystring + str(p) + " "
-            mystring = mystring + "\n"
+        return mystring
 
-        mystring = mystring + "Running queue" + "\n"
-        if self.running != None:
-            mystring = mystring + str(self.running) + " "
-            mystring = mystring + "\n"
+    def __str__(self):
+        """
+        Returns a string suitable for printing the queue
+        :return:
+        """
+        mystring = "---------------------------------------------" + "\n"
+        mystring += "Time : " + str(self.machineTime) + "\n"
 
-        mystring = mystring + "Blocked queue" + "\n"
-        if len(self.blocked) > 0:
-            for p in self.blocked:
-                mystring = mystring + str(p) + " "
-            mystring = mystring + "\n"
+        # the new queues
+        mystring += self.__strqueue("New queue", self.new)
 
-        mystring = mystring + "Exit queue" + "\n"
-        if len(self.exit) > 0:
-            for p in self.exit:
-                mystring = mystring + str(p) + " "
-            mystring = mystring + "\n"
+        # the ready queue
+        mystring += self.__strqueue("Ready queue", self.ready)
 
-        mystring = mystring + "---------------------------------------------" + "\n"
+        # the running/CPU queue
+        mystring += self.__strqueue("CPU (running)", self.running)
+
+        # the blocked queue
+        mystring += self.__strqueue("Blocked queue", self.blocked)
+
+        # the exit queue
+        mystring += self.__strqueue("Exit queue", self.exit)
+
+        mystring += "---------------------------------------------" + "\n"
 
         return mystring
 
