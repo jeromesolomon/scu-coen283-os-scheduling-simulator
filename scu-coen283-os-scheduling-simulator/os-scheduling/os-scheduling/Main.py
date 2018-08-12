@@ -2,10 +2,24 @@ import Process
 import Machine
 
 machine = Machine.Machine()
-l = list()
+
+""" 
+Jon's original example
+"""
+process = Process.Process("A",0)
+process.setbystats(1, 35, 0, 0, 0)  # makes a process with 1 burst of length 35, no io.
+machine.add(process)
+
+
+process = Process.Process("B",5)
+process.setbystats(1, 35, 0, 0, 0)  # makes a process with 1 burst of length 35, no io, enters 5 time units after previous process.
+machine.add(process)
+
+
+"""
 
 #
-# Professor Elkady's class lecture example
+# Professor Amr Elkady's class lecture example
 #
 
 # process A
@@ -48,20 +62,12 @@ processD.addcpuburst(1)
 
 machine.add(processD)
 
-
-""" Jon's original example
-process = Process.Process("A",0)
-process.setbystats(1, 35, 0, 0, 0)  # makes a process with 1 burst of length 35, no io.
-machine.add(process)
-
-
-process = Process.Process("B",5)
-process.setbystats(1, 35, 0, 0, 0)  # makes a process with 1 burst of length 35, no io, enters 5 time units after previous process.
-machine.add(process)
 """
 
 print(machine)
 
+# run the machine to completion
 while(machine.advanceTime()):
     print(machine)
+
 print(machine)
