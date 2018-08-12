@@ -109,7 +109,7 @@ class Process:
     def decrementDelayTime(self, value):
         self.delay -= value  # remove process time
         if self.delay <= 0:  # if i don't have to wait any more
-            print("went from new to ready!!!!")
+            self.printqueuechange("New", "Ready")
             self.new = False  # i'm not new any more
             return True  # notify that delay time was zeroed out
         return False
@@ -125,7 +125,7 @@ class Process:
                 self.finished = True  # set finished flag
                 return True  # notify that process time was zeroed out
             self.blocked = True  # block process
-            self.blocker = io.popleft()  # our blocker is now the current time
+            self.blocker = self.io.popleft()  # our blocker is now the current time
             return True  # notify that process time was zeroed out
         return False
 
@@ -136,3 +136,16 @@ class Process:
             self.blocked = False  # unblock process
             return True  # notify that IO time was zeroed out
         return False
+
+    def printqueuechange(self,oldQueueName,newQueueName):
+        """
+        prints a processes queue change info
+        :param oldQueueName: name of the old queue
+        :param newQueueName: name of the new queue
+        :return: None
+        """
+
+        print("process queue change:")
+        print("\t" + str(self))
+        print("\ttime = " + str(self.getTime()))
+        print("\tmoved from " + oldQueueName + " queue to " + newQueueName + " queue")

@@ -1,7 +1,6 @@
 from collections import deque
 import Process
 
-
 class Machine:
 
     def __init__(self):
@@ -79,8 +78,7 @@ class Machine:
 
         if(len(times) == 0):
             return False  # this means that the new queue is empty, the running state is empty, and the self.blocked queue is empty
-        print("times = ")
-        print(times)
+        # print("times = " + str(times))
         delta = min(times)
         self.machineTime += delta
 
@@ -101,13 +99,10 @@ class Machine:
                 self.running = None  # set running to None
 
         if len(self.ready) > 0 and self.running == None:  # if there's something self.ready and nothing running
-            print("first item in self.ready")
-            print(self.ready[0])
-            self.running = self.ready.popleft()  # take the frontmost element out of the self.ready queue and put it into the running spot
-            print("self.ready's size")
-            print(len(self.ready))
-            print("self.running")
-            print(self.running)
+            # take the frontmost element out of the self.ready queue and put it into the running spot
+            p = self.ready.popleft()
+            self.running = p
+            p.printqueuechange("Ready", "CPU/Running")
 
         if len(self.new) > 0 and self.new[0].decrement(delta):
             # if there is a self.new process and this time advancement zeroes out the delay of the frontmost process
