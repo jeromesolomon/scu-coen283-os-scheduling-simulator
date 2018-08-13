@@ -24,10 +24,10 @@ class Machine:
 
         mystring = ""
         mystring += qname + ":" + "\n"
-        if len(self.new) == 0:
+        if len(q) == 0:
             mystring += "\t" + "<empty>" + "\n"
         else:
-            for p in self.new:
+            for p in q:
                 mystring += "\t" + str(p) + "\n"
 
         return mystring
@@ -45,9 +45,15 @@ class Machine:
 
         # the ready queue
         mystring += self.__strqueue("Ready queue", self.ready)
-
-        # the running/CPU queue
-        mystring += self.__strqueue("CPU (running)", self.running)
+        
+        # the running/CPU process
+        mystring += "CPU :\n"
+        mystring += "\t"
+        if self.running == None:
+        	mystring += "<empty>"
+        else:
+        	mystring += str(self.running)
+        mystring += "\n"
 
         # the blocked queue
         mystring += self.__strqueue("Blocked queue", self.blocked)
@@ -84,28 +90,45 @@ class Machine:
 
         if len(self.blocked) > 0 and self.blocked[0].decrement(delta):
             # if there is something self.blocked and this time advancement zeroes out the wait time of the frontmost process
-            self.ready.append(self.blocked.popleft())  # dequeue from self.blocked and enqueue into self.ready
+            
+            # dequeue from self.blocked and enqueue into self.ready
+            p = self.blocked.popleft()
+            self.ready.append(p)
+            p.printqueuechange("Blocked", "Ready")
 
         if self.running != None:
             if self.running.decrement(delta):
                 # if there is something running and this time advancement zeroes out its burst time
                 if self.running.finished:
-                    self.exit.append(self.running)  # add to the finished queue
+                    # add to the finished queue
+                    p = self.running
+                    self.exit.append(p)
+                    p.printqueuechange("CPU","Exit")
+                    
                 else:
-                    self.blocked.append(self.running)  # it's self.blocked now (internal flagging happened already)
+                		# it's self.blocked now (internal flagging happened already)
+                    p = self.running
+                    self.blocked.append(p)
+                    p.printqueuechange("CPU","Blocked")
                 self.running = None  # set running to None
             elif preempt:  # when preemption happens, it always removes the process from running and puts it into self.ready
-                self.ready.append(self.running)  # put it back into the self.ready queue
+            		# put it back into the self.ready queue
+                p = self.running
+                self.ready.append(p)
+                p.printqueuechange("CPU","Ready")
                 self.running = None  # set running to None
 
         if len(self.ready) > 0 and self.running == None:  # if there's something self.ready and nothing running
             # take the frontmost element out of the self.ready queue and put it into the running spot
             p = self.ready.popleft()
             self.running = p
-            p.printqueuechange("Ready", "CPU/Running")
+            p.printqueuechange("Ready", "CPU")
 
         if len(self.new) > 0 and self.new[0].decrement(delta):
             # if there is a self.new process and this time advancement zeroes out the delay of the frontmost process
-            self.ready.append(self.new.popleft())  # take process from self.new and put it into self.ready
+            # take process from self.new and put it into self.ready
+            p = self.new.popleft()
+            self.ready.append(p)
+            p.printqueuechange("New", "Ready")
 
         return True  # do this at the end because two of the above blocks may execute during the same time slice

@@ -1,9 +1,8 @@
-
+import Process
 import Machine
 import ScheduleUtilities
 
 
-""" 
 #
 # Jon's original example
 #
@@ -20,9 +19,8 @@ process = Process.Process("B", 5)
 process.setbystats(1, 35, 0, 0, 0)  # makes a process with 1 burst of length 35, no io, enters 5 time units after previous process.
 machine.add(process)
 
-"""
-
-machine = ScheduleUtilities.createlectureexample()
+# runs with lecture scheduling data
+#machine = ScheduleUtilities.createlectureexample()
 
 
 print(machine)

@@ -96,7 +96,10 @@ class Process:
             return self.delay
         if self.blocked:
             return self.blocker
-        return self.processTimes[0]
+        if len(self.processTimes) > 0:
+        	return self.processTimes[0]
+        else:
+        	return None
 
     def decrement(self, value):
         if self.new:
@@ -109,7 +112,6 @@ class Process:
     def decrementDelayTime(self, value):
         self.delay -= value  # remove process time
         if self.delay <= 0:  # if i don't have to wait any more
-            self.printqueuechange("New", "Ready")
             self.new = False  # i'm not new any more
             return True  # notify that delay time was zeroed out
         return False
@@ -121,7 +123,7 @@ class Process:
         if self.processTimes[0] <= 0:
             self.processTimes.popleft()  # remove the process time
             if len(self.processTimes) == 0:  # if no more processes left
-                print("setting finished!")
+                # print("setting finished!")
                 self.finished = True  # set finished flag
                 return True  # notify that process time was zeroed out
             self.blocked = True  # block process
@@ -146,6 +148,6 @@ class Process:
         """
 
         print("process queue change:")
-        print("\t" + str(self))
         print("\ttime = " + str(self.getTime()))
+        print("\t" + str(self))
         print("\tmoved from " + oldQueueName + " queue to " + newQueueName + " queue")
