@@ -1,7 +1,6 @@
 from collections import deque
 import Process
 
-
 class Machine:
 
     def __init__(self):
@@ -15,40 +14,54 @@ class Machine:
     def add(self, process):
         self.new.append(process)
 
+    def __strqueue(self,qname,q):
+        """
+        Private method used to print a queue neatly.
+        :param qname: name of the queue
+        :param q: the queue
+        :return: a string
+        """
+
+        mystring = ""
+        mystring += qname + ":" + "\n"
+        if len(q) == 0:
+            mystring += "\t" + "<empty>" + "\n"
+        else:
+            for p in q:
+                mystring += "\t" + str(p) + "\n"
+
+        return mystring
+
     def __str__(self):
+        """
+        Returns a string suitable for printing the queue
+        :return:
+        """
         mystring = "---------------------------------------------" + "\n"
-        mystring = mystring + "machine time: " + str(self.machineTime) + "\n"
+        mystring += "Time : " + str(self.machineTime) + "\n"
 
-        mystring = mystring + "New queue" + "\n"
-        if len(self.new) > 0:
-            for p in self.new:
-                mystring = mystring + str(p) + " "
-            mystring = mystring + "\n"
+        # the new queues
+        mystring += self.__strqueue("New queue", self.new)
 
-        mystring = mystring + "Ready queue" + "\n"
-        if len(self.ready) > 0:
-            for p in self.ready:
-                mystring = mystring + str(p) + " "
-            mystring = mystring + "\n"
+        # the ready queue
+        mystring += self.__strqueue("Ready queue", self.ready)
+        
+        # the running/CPU process
+        mystring += "CPU :\n"
+        mystring += "\t"
+        if self.running == None:
+        	mystring += "<empty>"
+        else:
+        	mystring += str(self.running)
+        mystring += "\n"
 
-        mystring = mystring + "Running queue" + "\n"
-        if self.running != None:
-            mystring = mystring + str(self.running) + " "
-            mystring = mystring + "\n"
+        # the blocked queue
+        mystring += self.__strqueue("Blocked queue", self.blocked)
 
-        mystring = mystring + "Blocked queue" + "\n"
-        if len(self.blocked) > 0:
-            for p in self.blocked:
-                mystring = mystring + str(p) + " "
-            mystring = mystring + "\n"
+        # the exit queue
+        mystring += self.__strqueue("Exit queue", self.exit)
 
-        mystring = mystring + "Exit queue" + "\n"
-        if len(self.exit) > 0:
-            for p in self.exit:
-                mystring = mystring + str(p) + " "
-            mystring = mystring + "\n"
-
-        mystring = mystring + "---------------------------------------------" + "\n"
+        mystring += "---------------------------------------------" + "\n"
 
         return mystring
 
@@ -71,38 +84,51 @@ class Machine:
 
         if(len(times) == 0):
             return False  # this means that the new queue is empty, the running state is empty, and the self.blocked queue is empty
-        print("times = ")
-        print(times)
+        # print("times = " + str(times))
         delta = min(times)
         self.machineTime += delta
 
         if len(self.blocked) > 0 and self.blocked[0].decrement(delta):
             # if there is something self.blocked and this time advancement zeroes out the wait time of the frontmost process
-            self.ready.append(self.blocked.popleft())  # dequeue from self.blocked and enqueue into self.ready
+            
+            # dequeue from self.blocked and enqueue into self.ready
+            p = self.blocked.popleft()
+            self.ready.append(p)
+            p.printqueuechange("Blocked", "Ready")
 
         if self.running != None:
             if self.running.decrement(delta):
                 # if there is something running and this time advancement zeroes out its burst time
                 if self.running.finished:
-                    self.exit.append(self.running)  # add to the finished queue
+                    # add to the finished queue
+                    p = self.running
+                    self.exit.append(p)
+                    p.printqueuechange("CPU","Exit")
+                    
                 else:
-                    self.blocked.append(self.running)  # it's self.blocked now (internal flagging happened already)
+                		# it's self.blocked now (internal flagging happened already)
+                    p = self.running
+                    self.blocked.append(p)
+                    p.printqueuechange("CPU","Blocked")
                 self.running = None  # set running to None
             elif preempt:  # when preemption happens, it always removes the process from running and puts it into self.ready
-                self.ready.append(self.running)  # put it back into the self.ready queue
+            		# put it back into the self.ready queue
+                p = self.running
+                self.ready.append(p)
+                p.printqueuechange("CPU","Ready")
                 self.running = None  # set running to None
 
         if len(self.ready) > 0 and self.running == None:  # if there's something self.ready and nothing running
-            print("first item in self.ready")
-            print(self.ready[0])
-            self.running = self.ready.popleft()  # take the frontmost element out of the self.ready queue and put it into the running spot
-            print("self.ready's size")
-            print(len(self.ready))
-            print("self.running")
-            print(self.running)
+            # take the frontmost element out of the self.ready queue and put it into the running spot
+            p = self.ready.popleft()
+            self.running = p
+            p.printqueuechange("Ready", "CPU")
 
         if len(self.new) > 0 and self.new[0].decrement(delta):
             # if there is a self.new process and this time advancement zeroes out the delay of the frontmost process
-            self.ready.append(self.new.popleft())  # take process from self.new and put it into self.ready
+            # take process from self.new and put it into self.ready
+            p = self.new.popleft()
+            self.ready.append(p)
+            p.printqueuechange("New", "Ready")
 
         return True  # do this at the end because two of the above blocks may execute during the same time slice

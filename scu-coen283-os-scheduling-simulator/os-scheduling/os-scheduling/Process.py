@@ -7,27 +7,71 @@ from collections import deque
 
 class Process:
 
-    def __init__(self, processID, numBursts, burstMean, burstSD, ioMean, ioSD, delay):
+    # global process id variable (start process IDs at 100)
+    globalProcessID = 100
+
+    def __init__(self, processName, delay):
         # this represents the process beginning at the new state
 
-        self.processID = processID
+        # assign a unique process ID
+        self.processID = Process.globalProcessID
+        Process.globalProcessID += 1
 
-        self.delay = delay
+        self.processName = processName
+
+        self.delay = delay  # the time at which the process enter the system and is put in to the ready queue
         self.new = True
         self.finished = False
         self.processTimes = deque()  # this is a list of integer times representing the duration of each process burst
         self.io = deque()  # this is a list of all the io operations that happen between processor bursts
         self.blocked = False  # initialized to not blocked
         self.blocker = None  # nothing blocking process yet
+
+
+
+    def setbystats(self, numBursts, burstMean, burstSD, ioMean, ioSD):
+        """
+        Sets the process based on statistics and random values
+        :param numBursts:
+        :param burstMean:
+        :param burstSD:
+        :param ioMean:
+        :param ioSD
+        :return:
+        """
+
         for i in range(numBursts):
             # generate a random time statistically for both process burst time and io time
             self.processTimes.append(int(round(np.random.normal(burstMean, burstSD))))
             if i < numBursts-1:
                 io.append(int(round(np.random.normal(ioMean, ioSD))))
 
+    def addcpuburst(self, cpuBurst):
+        """
+        Adds a cpu burst to the process
+        :param cpuBurst: amoount of time for cpu burst
+        :return: None
+        """
+
+        self.processTimes.append(cpuBurst)
+
+        return None
+
+    def addioburst(self, ioBurst):
+        """
+        Adds a IO burst to the process
+        :param cpuBurst: amoount of time for cpu burst
+        :return: None
+        """
+
+        self.io.append(ioBurst)
+
+        return None
+
     def __str__(self):
         result = ""
-        result = result + "process ID: " + str(self.processID) + "\n"
+        result += "process ID: " + str(self.processID) + " name: " + str(self.processName)
+
         '''
         result = result + "new: " + str(self.new) + "\n"
         result = result + "finished: " + str(self.finished) + "\n"
@@ -52,7 +96,10 @@ class Process:
             return self.delay
         if self.blocked:
             return self.blocker
-        return self.processTimes[0]
+        if len(self.processTimes) > 0:
+        	return self.processTimes[0]
+        else:
+        	return None
 
     def decrement(self, value):
         if self.new:
@@ -65,7 +112,6 @@ class Process:
     def decrementDelayTime(self, value):
         self.delay -= value  # remove process time
         if self.delay <= 0:  # if i don't have to wait any more
-            print("went from new to ready!!!!")
             self.new = False  # i'm not new any more
             return True  # notify that delay time was zeroed out
         return False
@@ -77,11 +123,11 @@ class Process:
         if self.processTimes[0] <= 0:
             self.processTimes.popleft()  # remove the process time
             if len(self.processTimes) == 0:  # if no more processes left
-                print("setting finished!")
+                # print("setting finished!")
                 self.finished = True  # set finished flag
                 return True  # notify that process time was zeroed out
             self.blocked = True  # block process
-            self.blocker = io.popleft()  # our blocker is now the current time
+            self.blocker = self.io.popleft()  # our blocker is now the current time
             return True  # notify that process time was zeroed out
         return False
 
@@ -92,3 +138,16 @@ class Process:
             self.blocked = False  # unblock process
             return True  # notify that IO time was zeroed out
         return False
+
+    def printqueuechange(self,oldQueueName,newQueueName):
+        """
+        prints a processes queue change info
+        :param oldQueueName: name of the old queue
+        :param newQueueName: name of the new queue
+        :return: None
+        """
+
+        print("process queue change:")
+        print("\ttime = " + str(self.getTime()))
+        print("\t" + str(self))
+        print("\tmoved from " + oldQueueName + " queue to " + newQueueName + " queue")
