@@ -3,15 +3,33 @@ import Process
 
 class Machine:
 
-    def __init__(self):
-        self.machineTime = 0
+    def __init__(self, numCores = 1):
+        """
+        Initializes a machine object
+        :param numCores: number of cores in the CPU
+        """
+
+        self.time = 0
+
+        # cpu is a list of processes of size numCores (each representing a core on the cpu)
+        self.numCores = numCores
+        self.cpu = [None] * numCores
+
+        # io is a single device that handles only 1 io burst at a time
+        self.io = None
+
+        # queue for os handling of processes
         self.new = deque()
-        self.ready = deque()  # This is where the DataStructures class will apply.
-        self.running = None
+        self.ready = deque()
         self.blocked = deque()
         self.exit = deque()
 
     def add(self, process):
+        """
+        Adds a process to the machine
+        :param process: the process to add
+        :return: None
+        """
         self.new.append(process)
 
     def __strqueue(self,qname,q):
@@ -38,7 +56,8 @@ class Machine:
         :return:
         """
         mystring = "---------------------------------------------" + "\n"
-        mystring += "Time : " + str(self.machineTime) + "\n"
+        mystring += "Time : " + str(self.time) + "\n"
+        mystring += "Number of cores: " + str(self.numCores) + "\n"
 
         # the new queues
         mystring += self.__strqueue("New queue", self.new)
@@ -46,17 +65,28 @@ class Machine:
         # the ready queue
         mystring += self.__strqueue("Ready queue", self.ready)
         
-        # the running/CPU process
-        mystring += "CPU :\n"
-        mystring += "\t"
-        if self.running == None:
-        	mystring += "<empty>"
-        else:
-        	mystring += str(self.running)
-        mystring += "\n"
+        # the running/CPU processes
+        mystring += "CPU:\n"
+        coreNum = 0
+        for p in self.cpu:
+            mystring += "\tcore " + str(coreNum) + ": "
+            if p is None:
+                mystring += "<empty>"
+            else:
+                mystring += str(p)
+            mystring += "\n"
+            coreNum += 1
 
         # the blocked queue
         mystring += self.__strqueue("Blocked queue", self.blocked)
+
+        # the io device
+        mystring += "IO: "
+        if self.io is None:
+            mystring += "<empty>"
+        else:
+            mystring += str(self.io)
+        mystring += "\n"
 
         # the exit queue
         mystring += self.__strqueue("Exit queue", self.exit)
@@ -65,7 +95,50 @@ class Machine:
 
         return mystring
 
-    def advanceTime(self):
+    def hasprocesses(self):
+        """
+        Does the machine have processes in it
+        :return: True if the machine has processes
+        """
+
+        cpu = False
+        for core in self.cpu:
+            if core is not None:
+                cpu = True
+
+        newQ = len(self.new)
+        readyQ = len(self.ready)
+        blockedQ = len(self.blocked)
+
+        status = cpu or newQ or readyQ or blockedQ
+
+        return status
+
+
+    def advancetime(self):
+        """
+        Adjust processes then moves the clock 1 tick forward (time + 1)
+        :return: returns done as True if all processes are completed
+        """
+
+        hasProcesses = False
+
+        # adjust processes
+
+        # if any processes can proceed from newQ put them in readyQ
+
+        # if any process in readyQ has cpu-burst next, move it to any available core
+
+        # if process is done on CPU core, move it to blocked queue
+
+        # if any process in readyQ has io-burst next, move it to blocked queue
+
+        # if a process in blocked queue can do io, move it to IO
+
+        # if IO is done, move process to readyQ or exitQ
+
+
+        """
         # returns False if time was not advanced, True if it was
         # self.newTime is the time until arrival
 
@@ -131,4 +204,27 @@ class Machine:
             self.ready.append(p)
             p.printqueuechange("New", "Ready")
 
-        return True  # do this at the end because two of the above blocks may execute during the same time slice
+        """
+
+        # check if the machine has processes
+        haaProcesses = self.hasprocesses()
+
+        # if cpu has processes in new, ready, blocked, or cpu, increase time by 1
+        if hasProcesses:
+            self.time += 1
+
+        return hasProcesses
+
+    def printqueuechange(self, p, oldQueueName, newQueueName):
+        """
+        prints a processes queue change info
+        :param p: the process changing queues
+        :param oldQueueName: name of the old queue
+        :param newQueueName: name of the new queue
+        :return: None
+        """
+
+        print("process queue change:")
+        print("\ttime = " + str(self.time))
+        print("\t" + str(p))
+        print("\tmoved from " + oldQueueName + " queue to " + newQueueName + " queue")
