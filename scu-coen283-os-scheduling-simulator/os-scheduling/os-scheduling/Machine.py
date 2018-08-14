@@ -114,6 +114,13 @@ class Machine:
 
         return status
 
+    def __advance_new_queue(self):
+        """
+        evaluates and advances the new queue
+        :return: None
+        """
+
+        print("status: advancing the new queue")
 
     def advance_time(self):
         """
@@ -125,17 +132,43 @@ class Machine:
 
         # adjust processes
 
-        # if any processes can proceed from newQ put them in readyQ
+        #
+        # handle the newQ
+        #
+
+        # if any processes in newQ can proceed put them in the readyQ
+
+        #
+        # handle the readyQ
+        #
 
         # if any process in readyQ has cpu-burst next, move it to any available core
 
-        # if process is done on CPU core, move it to blocked queue
+        # if any process in readyQ has io-burst next, move it to the blocked queue
 
-        # if any process in readyQ has io-burst next, move it to blocked queue
+        #
+        # handle the CPU
+        #
 
-        # if a process in blocked queue can do io, move it to IO
+        # if process is done on any of the CPU cores and has io-burst next, move them to blocked queue
 
-        # if IO is done, move process to readyQ or exitQ
+        # if process is done on any of the CPU cores and has cpu-burst next, leave it in the CPU
+
+        # if process is done and does not have any more bursts, move it to the exit queue
+
+        #
+        # handle the blockedQ
+        #
+
+        # if a process in blocked queue and io is available, move it io
+
+        #
+        # handle the blockedQ
+        #
+
+        # if IO is done and process has more burst left, move it to the readyQ
+
+        # if IO is done and does not have any more bursts, move it to the exit queue
 
 
         """
