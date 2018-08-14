@@ -1,6 +1,7 @@
 from collections import deque
 import Process
 
+
 class Machine:
 
     def __init__(self):
@@ -10,11 +11,13 @@ class Machine:
         self.running = None
         self.blocked = deque()
         self.exit = deque()
+        self.quantum = Quantum(500)
+        self.useQuantum = False
 
     def add(self, process):
         self.new.append(process)
 
-    def __strqueue(self,qname,q):
+    def __strqueue(self, qname, q):
         """
         Private method used to print a queue neatly.
         :param qname: name of the queue
@@ -45,14 +48,14 @@ class Machine:
 
         # the ready queue
         mystring += self.__strqueue("Ready queue", self.ready)
-        
+
         # the running/CPU process
         mystring += "CPU :\n"
         mystring += "\t"
         if self.running == None:
-        	mystring += "<empty>"
+            mystring += "<empty>"
         else:
-        	mystring += str(self.running)
+            mystring += str(self.running)
         mystring += "\n"
 
         # the blocked queue
@@ -69,56 +72,59 @@ class Machine:
         # returns False if time was not advanced, True if it was
         # self.newTime is the time until arrival
 
-        preempt = False  # this should get set if a preemption happens
         newTime = self.new[0].getTime() if len(self.new) > 0 else None
-        runningTime = None if self.running == None else self.running.getTime()
+        runningTime = None if self.running is None else self.running.getTime()
         blockedTime = None if len(self.blocked) == 0 else self.blocked[0].getTime()
+        quantumTime = None if self.useQuantum is False else self.quantum.getTime()
         times = list()
 
-        if(newTime != None):
+        if newTime is not None:
             times.append(newTime)
-        if(runningTime != None):
+        if runningTime is not None:
             times.append(runningTime)
-        if(blockedTime != None):
+        if blockedTime is not None:
             times.append(blockedTime)
+        if quantumTime is not None:
+            times.append(quantumTime)
 
-        if(len(times) == 0):
+        if len(times) == 0:
             return False  # this means that the new queue is empty, the running state is empty, and the self.blocked queue is empty
         # print("times = " + str(times))
         delta = min(times)
         self.machineTime += delta
+        preempt = self.quantum.decrement(delta) #decrement and set preemption here
 
         if len(self.blocked) > 0 and self.blocked[0].decrement(delta):
             # if there is something self.blocked and this time advancement zeroes out the wait time of the frontmost process
-            
+
             # dequeue from self.blocked and enqueue into self.ready
             p = self.blocked.popleft()
             self.ready.append(p)
             p.printqueuechange("Blocked", "Ready")
 
-        if self.running != None:
+        if self.running is not None:
             if self.running.decrement(delta):
                 # if there is something running and this time advancement zeroes out its burst time
                 if self.running.finished:
                     # add to the finished queue
                     p = self.running
                     self.exit.append(p)
-                    p.printqueuechange("CPU","Exit")
-                    
+                    p.printqueuechange("CPU", "Exit")
+
                 else:
-                		# it's self.blocked now (internal flagging happened already)
+                    # it's self.blocked now (internal flagging happened already)
                     p = self.running
                     self.blocked.append(p)
-                    p.printqueuechange("CPU","Blocked")
+                    p.printqueuechange("CPU", "Blocked")
                 self.running = None  # set running to None
             elif preempt:  # when preemption happens, it always removes the process from running and puts it into self.ready
-            		# put it back into the self.ready queue
+                # put it back into the self.ready queue
                 p = self.running
                 self.ready.append(p)
-                p.printqueuechange("CPU","Ready")
+                p.printqueuechange("CPU", "Ready")
                 self.running = None  # set running to None
 
-        if len(self.ready) > 0 and self.running == None:  # if there's something self.ready and nothing running
+        if len(self.ready) > 0 and self.running is None:  # if there's something self.ready and nothing running
             # take the frontmost element out of the self.ready queue and put it into the running spot
             p = self.ready.popleft()
             self.running = p
@@ -132,3 +138,25 @@ class Machine:
             p.printqueuechange("New", "Ready")
 
         return True  # do this at the end because two of the above blocks may execute during the same time slice
+
+
+class Quantum:
+
+    def __init__(self, qTime):
+        self.qTime = qTime
+        self.timeRemaining = qTime
+
+    def setQuantum(self, qTime):
+        self.qTime = qTime
+
+    def getTime(self):
+        return self.timeRemaining
+
+    def decrement(self, time):
+        self.timeRemaining -= time
+        expired = self.timeRemaining <= 0
+        # if time quantum is expired, reset time
+        if expired:
+            self.timeRemaining = self.qTime
+        return expired
+
