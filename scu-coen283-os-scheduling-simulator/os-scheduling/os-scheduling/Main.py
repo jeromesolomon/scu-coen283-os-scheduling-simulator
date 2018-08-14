@@ -23,12 +23,12 @@ machine.add(process)
 """
 
 # runs with lecture scheduling data
-machine = ScheduleUtilities.createlectureexample()
+machine = ScheduleUtilities.create_lecture_example()
 
 
 print(machine)
 
 # run the machine to completion
-while(machine.advancetime()):
+while(machine.advance_time()):
     print(machine)
 

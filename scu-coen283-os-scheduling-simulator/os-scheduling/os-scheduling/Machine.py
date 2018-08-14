@@ -32,7 +32,7 @@ class Machine:
         """
         self.new.append(process)
 
-    def __strqueue(self,qname,q):
+    def __str_queue(self,qname,q):
         """
         Private method used to print a queue neatly.
         :param qname: name of the queue
@@ -60,10 +60,10 @@ class Machine:
         mystring += "Number of cores: " + str(self.numCores) + "\n"
 
         # the new queues
-        mystring += self.__strqueue("New queue", self.new)
+        mystring += self.__str_queue("New queue", self.new)
 
         # the ready queue
-        mystring += self.__strqueue("Ready queue", self.ready)
+        mystring += self.__str_queue("Ready queue", self.ready)
         
         # the running/CPU processes
         mystring += "CPU:\n"
@@ -78,24 +78,24 @@ class Machine:
             coreNum += 1
 
         # the blocked queue
-        mystring += self.__strqueue("Blocked queue", self.blocked)
+        mystring += self.__str_queue("Blocked queue", self.blocked)
 
         # the io device
-        mystring += "IO: "
+        mystring += "IO:\n"
         if self.io is None:
-            mystring += "<empty>"
+            mystring += "\t<empty>"
         else:
-            mystring += str(self.io)
+            mystring += "\t" + str(self.io)
         mystring += "\n"
 
         # the exit queue
-        mystring += self.__strqueue("Exit queue", self.exit)
+        mystring += self.__str_queue("Exit queue", self.exit)
 
         mystring += "---------------------------------------------" + "\n"
 
         return mystring
 
-    def hasprocesses(self):
+    def has_processes(self):
         """
         Does the machine have processes in it
         :return: True if the machine has processes
@@ -115,7 +115,7 @@ class Machine:
         return status
 
 
-    def advancetime(self):
+    def advance_time(self):
         """
         Adjust processes then moves the clock 1 tick forward (time + 1)
         :return: returns done as True if all processes are completed
@@ -167,7 +167,7 @@ class Machine:
             # dequeue from self.blocked and enqueue into self.ready
             p = self.blocked.popleft()
             self.ready.append(p)
-            p.printqueuechange("Blocked", "Ready")
+            p.print_queue_change("Blocked", "Ready")
 
         if self.running != None:
             if self.running.decrement(delta):
@@ -176,38 +176,38 @@ class Machine:
                     # add to the finished queue
                     p = self.running
                     self.exit.append(p)
-                    p.printqueuechange("CPU","Exit")
+                    p.print_queue_change("CPU","Exit")
                     
                 else:
                 		# it's self.blocked now (internal flagging happened already)
                     p = self.running
                     self.blocked.append(p)
-                    p.printqueuechange("CPU","Blocked")
+                    p.print_queue_change("CPU","Blocked")
                 self.running = None  # set running to None
             elif preempt:  # when preemption happens, it always removes the process from running and puts it into self.ready
             		# put it back into the self.ready queue
                 p = self.running
                 self.ready.append(p)
-                p.printqueuechange("CPU","Ready")
+                p.print_queue_change("CPU","Ready")
                 self.running = None  # set running to None
 
         if len(self.ready) > 0 and self.running == None:  # if there's something self.ready and nothing running
             # take the frontmost element out of the self.ready queue and put it into the running spot
             p = self.ready.popleft()
             self.running = p
-            p.printqueuechange("Ready", "CPU")
+            p.print_queue_change("Ready", "CPU")
 
         if len(self.new) > 0 and self.new[0].decrement(delta):
             # if there is a self.new process and this time advancement zeroes out the delay of the frontmost process
             # take process from self.new and put it into self.ready
             p = self.new.popleft()
             self.ready.append(p)
-            p.printqueuechange("New", "Ready")
+            p.print_queue_change("New", "Ready")
 
         """
 
         # check if the machine has processes
-        haaProcesses = self.hasprocesses()
+        haaProcesses = self.has_processes()
 
         # if cpu has processes in new, ready, blocked, or cpu, increase time by 1
         if hasProcesses:
@@ -215,7 +215,7 @@ class Machine:
 
         return hasProcesses
 
-    def printqueuechange(self, p, oldQueueName, newQueueName):
+    def print_queue_change(self, p, oldQueueName, newQueueName):
         """
         prints a processes queue change info
         :param p: the process changing queues

@@ -30,7 +30,7 @@ class Process:
 
 
 
-    def setbystats(self, numBursts, burstMean, burstSD, ioMean, ioSD):
+    def set_by_stats(self, numBursts, burstMean, burstSD, ioMean, ioSD):
         """
         Sets the process based on statistics and random values
         :param numBursts:
@@ -47,7 +47,7 @@ class Process:
             if i < numBursts-1:
                 io.append(int(round(np.random.normal(ioMean, ioSD))))
 
-    def addcpuburst(self, cpuBurst):
+    def add_cpu_burst(self, cpuBurst):
         """
         Adds a cpu burst to the process
         :param cpuBurst: amoount of time for cpu burst
@@ -59,7 +59,7 @@ class Process:
         self.remainingBursts.append(b)
         self.bursts.append(b)
 
-    def addioburst(self, ioBurst):
+    def add_io_burst(self, ioBurst):
         """
         Adds a IO burst to the process
         :param cpuBurst: amoount of time for cpu burst
