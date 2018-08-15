@@ -219,8 +219,9 @@ class Machine:
 
         # for each process on the CPU, check if the cpu burst is done and
         # process it.
-        # if process is done and does not have any more bursts, move it to the exit queue
+        # if process is done on any of the CPU cores and has io-burst next, move it to blocked queue
         # if process is done on any of the CPU cores and has cpu-burst next, leave it in the CPU
+        # if process is done and does not have any more bursts, move it to the exit queue
 
         i = 0
         while i < len(self.cpu):
@@ -235,14 +236,19 @@ class Machine:
                 # the cpu-burst is done when there is no more time left in the burst value
                 burstIsDone = (burst[1] == 0)
                 if burstIsDone:
-                    # pop the burst off the remainingBurst q
-                    p.bursts.pop()
+                    # pop the burst off the bursts queue
+                    p.bursts.popleft()
 
                     # if there are no more burst left, we are done.  Move process to the exit queue
                     # and free up this cpu core.
                     if len(p.bursts) == 0:
                         self.exit.append(p)
                         self.cpu[i] = None
+                    else:
+                        # if next burst is io, move the process to the blocked queue
+                        if p.bursts[0][0] == "io":
+                            self.blocked.append(p)
+                            self.cpu[i] = None
 
                 else:
                     # if burst is not done, decrease the cpu-burst value by 1 and leave
@@ -291,6 +297,7 @@ class Machine:
         #
 
         # if a process in blocked queue and io is available, move it io
+
 
         #
         # handle the blockedQ

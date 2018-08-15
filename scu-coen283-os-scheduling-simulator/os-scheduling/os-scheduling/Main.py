@@ -26,8 +26,11 @@ machine.add(process)
 # machine = ScheduleUtilities.create_lecture_example()
 
 # multi-core test
-machine = ScheduleUtilities.create_multi_core_test()
+# machine = ScheduleUtilities.create_multi_core_test()
 # ScheduleUtilities.add_test_processes(machine)
+
+# single process test
+machine = ScheduleUtilities.create_single_process_test()
 
 print(machine)
 

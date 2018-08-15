@@ -129,3 +129,18 @@ def add_test_processes(m):
     p.add_io_burst(3)
     m.add(p)
 
+def create_single_process_test():
+
+    machine = Machine.Machine(1)
+
+    p = Process.Process("Single-Process", 0)
+
+    p.add_cpu_burst(3)
+    p.add_io_burst(3)
+    p.add_cpu_burst(2)
+    p.add_io_burst(2)
+    p.add_cpu_burst(1)
+
+    machine.add(p)
+
+    return machine
