@@ -23,11 +23,11 @@ machine.add(process)
 """
 
 # runs with lecture scheduling data
-#machine = ScheduleUtilities.create_lecture_example()
+# machine = ScheduleUtilities.create_lecture_example()
 
 # multi-core test
 machine = ScheduleUtilities.create_multi_core_test()
-ScheduleUtilities.add_test_processes(machine)
+# ScheduleUtilities.add_test_processes(machine)
 
 print(machine)
 

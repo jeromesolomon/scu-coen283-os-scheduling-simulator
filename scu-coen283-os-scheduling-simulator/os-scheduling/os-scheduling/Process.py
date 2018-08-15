@@ -23,8 +23,6 @@ class Process:
         # list of the type of bursts (type,time)
         # for example, [(cpu,4),(io,3),(cpu,2)]
 
-        # remaining bursts in the process
-        self.remainingBursts = deque()
         # list of all bursts in the process
         self.bursts = deque()
 
@@ -56,7 +54,6 @@ class Process:
 
         b = ["cpu", cpuBurst]
 
-        self.remainingBursts.append(b)
         self.bursts.append(b)
 
     def add_io_burst(self, ioBurst):
@@ -68,7 +65,6 @@ class Process:
 
         b = ["io", ioBurst]
 
-        self.remainingBursts.append(b)
         self.bursts.append(b)
 
     def __str__(self):
@@ -80,7 +76,6 @@ class Process:
         result += "name = " + str(self.processName) + ", "
         result += "start time = " + str(self.startTime) + ", "
         result += "bursts = " + str(self.bursts)
-        # result += "remaining bursts = " + str(self.remainingBursts) + ""
         result += "}"
 
         return result
