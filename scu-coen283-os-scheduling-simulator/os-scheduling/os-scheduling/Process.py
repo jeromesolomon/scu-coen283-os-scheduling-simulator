@@ -74,6 +74,13 @@ class Process:
     def __str__(self):
 
         result = ""
-        result += "process ID: " + str(self.processID) + " name: " + str(self.processName)
+        result += "process ID: " + str(self.processID)
+        result += " "
+        result += "{"
+        result += "name = " + str(self.processName) + ", "
+        result += "start time = " + str(self.startTime) + ", "
+        result += "bursts = " + str(self.bursts)
+        # result += "remaining bursts = " + str(self.remainingBursts) + ""
+        result += "}"
 
         return result

@@ -106,26 +106,114 @@ class Machine:
             if core is not None:
                 cpu = True
 
-        newQ = len(self.new)
-        readyQ = len(self.ready)
-        blockedQ = len(self.blocked)
+        newQ = (len(self.new) > 0)
+        readyQ = (len(self.ready) > 0)
+        blockedQ = (len(self.blocked) > 0)
 
         status = cpu or newQ or readyQ or blockedQ
 
         return status
 
-    def __advance_new_queue(self):
+    def __add_process_to_cpu(self, p):
+        """
+        Adds a process to an available slot on the cpu
+        :param p:
+        :return: None
+        """
+
+        assigned = False
+        i = 0
+
+        # loop through the cores adding a process to any available core
+        while (i < len(self.cpu)) and (not assigned):
+
+            if self.cpu[i] is None:
+                self.cpu[i] = p
+                assigned = True
+
+            i += 1
+
+    def __cpu_is_available(self):
+        """
+        Returns true if the cpu is empty
+        :return:
+        """
+
+        # check all the cores to see if any core is available, if any core is available
+        # return true
+        isAvailable = False
+        for core in self.cpu:
+            if core is None:
+                isAvailable = True
+
+        return isAvailable
+
+    def __process_new_queue(self):
         """
         evaluates and advances the new queue
         :return: None
         """
 
-        print("status: advancing the new queue")
+        # if any processes in newQ can proceed put them in the readyQ
 
-    def advance_time(self):
+        temp = deque()
+
+        while len(self.new) > 0:
+
+            p = self.new.pop()
+
+            # if the process p can start put it in the ready q, if not, put it in the tempQ
+            if p.startTime <= self.time:
+                self.ready.append(p)
+            else:
+                temp.append(p)
+
+        # put in processes not moved to the ready q back in to the new q
+        self.new = temp
+
+    def __process_ready_queue(self):
         """
-        Adjust processes then moves the clock 1 tick forward (time + 1)
-        :return: returns done as True if all processes are completed
+        evaluates and advances the ready queue
+        :return: None
+        """
+
+        temp = deque()
+
+        # if any process in readyQ has cpu-burst next, move it to any available core
+        # if any process in readyQ has io-burst next, move it to the blocked queue
+
+        while len(self.ready) > 0:
+
+            p = self.ready.pop()
+
+            # if any process in readyQ has cpu-burst next, move it to any available core
+            # if remaining bursts are 0, the process is done and should be in the exit queue
+
+            if len(p.remainingBursts) == 0:
+                print("ERROR: moving process from ready queue directly to exit queue")
+                self.exit.append(p)
+            else:
+                burst = p.remainingBursts[0]
+                if burst[0] == "cpu":
+
+                    # if cpu is available add process to cpu, otherwise leave it in the ready q
+                    if self.__cpu_is_available():
+                        self.__add_process_to_cpu(p)
+                    else:
+                        temp.append(p)
+
+                if burst[0] == "io":
+                    self.blocked.append(p)
+
+        # put in processes not moved to the cpu or blocked q back in to the ready q
+        self.ready = temp
+
+
+
+    def process_all_queues(self):
+        """
+        handles the process queues and moving processes around
+        :return: returns None
         """
 
         hasProcesses = False
@@ -137,14 +225,15 @@ class Machine:
         #
 
         # if any processes in newQ can proceed put them in the readyQ
+        self.__process_new_queue()
 
         #
         # handle the readyQ
         #
 
         # if any process in readyQ has cpu-burst next, move it to any available core
-
         # if any process in readyQ has io-burst next, move it to the blocked queue
+        self.__process_ready_queue()
 
         #
         # handle the CPU
@@ -171,80 +260,9 @@ class Machine:
         # if IO is done and does not have any more bursts, move it to the exit queue
 
 
-        """
-        # returns False if time was not advanced, True if it was
-        # self.newTime is the time until arrival
-
-        preempt = False  # this should get set if a preemption happens
-        newTime = self.new[0].getTime() if len(self.new) > 0 else None
-        runningTime = None if self.running == None else self.running.getTime()
-        blockedTime = None if len(self.blocked) == 0 else self.blocked[0].getTime()
-        times = list()
-
-        if(newTime != None):
-            times.append(newTime)
-        if(runningTime != None):
-            times.append(runningTime)
-        if(blockedTime != None):
-            times.append(blockedTime)
-
-        if(len(times) == 0):
-            return False  # this means that the new queue is empty, the running state is empty, and the self.blocked queue is empty
-        # print("times = " + str(times))
-        delta = min(times)
-        self.machineTime += delta
-
-        if len(self.blocked) > 0 and self.blocked[0].decrement(delta):
-            # if there is something self.blocked and this time advancement zeroes out the wait time of the frontmost process
-            
-            # dequeue from self.blocked and enqueue into self.ready
-            p = self.blocked.popleft()
-            self.ready.append(p)
-            p.print_queue_change("Blocked", "Ready")
-
-        if self.running != None:
-            if self.running.decrement(delta):
-                # if there is something running and this time advancement zeroes out its burst time
-                if self.running.finished:
-                    # add to the finished queue
-                    p = self.running
-                    self.exit.append(p)
-                    p.print_queue_change("CPU","Exit")
-                    
-                else:
-                		# it's self.blocked now (internal flagging happened already)
-                    p = self.running
-                    self.blocked.append(p)
-                    p.print_queue_change("CPU","Blocked")
-                self.running = None  # set running to None
-            elif preempt:  # when preemption happens, it always removes the process from running and puts it into self.ready
-            		# put it back into the self.ready queue
-                p = self.running
-                self.ready.append(p)
-                p.print_queue_change("CPU","Ready")
-                self.running = None  # set running to None
-
-        if len(self.ready) > 0 and self.running == None:  # if there's something self.ready and nothing running
-            # take the frontmost element out of the self.ready queue and put it into the running spot
-            p = self.ready.popleft()
-            self.running = p
-            p.print_queue_change("Ready", "CPU")
-
-        if len(self.new) > 0 and self.new[0].decrement(delta):
-            # if there is a self.new process and this time advancement zeroes out the delay of the frontmost process
-            # take process from self.new and put it into self.ready
-            p = self.new.popleft()
-            self.ready.append(p)
-            p.print_queue_change("New", "Ready")
-
-        """
 
         # check if the machine has processes
-        haaProcesses = self.has_processes()
-
-        # if cpu has processes in new, ready, blocked, or cpu, increase time by 1
-        if hasProcesses:
-            self.time += 1
+        hasProcesses = self.has_processes()
 
         return hasProcesses
 
