@@ -34,17 +34,16 @@ machine = ScheduleUtilities.create_single_process_test()
 
 print(machine)
 
-for i in range(0, 5):
+for i in range(0, 20):
 
     # process all the queues
-    hasProcesses = machine.process_all_queues()
+    hasProcesses = machine.process_all()
 
     # print status of the machine
     print(machine)
 
-    # if cpu has processes in new, ready, blocked, or cpu, increase time by 1
-    if hasProcesses:
-        machine.time += 1
+    # increase time
+    machine.time += 1
 
 
 # run the machine to completion
@@ -52,13 +51,12 @@ for i in range(0, 5):
 hasProcesses = True
 while(hasProcesses):
     # process all the queues
-    hasProcesses = machine.process_all_queues()
+    hasProcesses = machine.process_all()
 
     # print status of the machine
     print(machine)
 
-    # if cpu has processes in new, ready, blocked, or cpu, increase time by 1
-    if hasProcesses:
-        machine.time += 1
+    # increase time
+    machine.time += 1
 """
 

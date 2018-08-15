@@ -32,7 +32,7 @@ class Machine:
         """
         self.new.append(process)
 
-    def __str_queue(self,qname,q):
+    def __str_queue(self, qname, q):
         """
         Private method used to print a queue neatly.
         :param qname: name of the queue
@@ -101,16 +101,22 @@ class Machine:
         :return: True if the machine has processes
         """
 
+        newQ = (len(self.new) > 0)
+        readyQ = (len(self.ready) > 0)
+
+        # check all cores for processes
         cpu = False
         for core in self.cpu:
             if core is not None:
                 cpu = True
 
-        newQ = (len(self.new) > 0)
-        readyQ = (len(self.ready) > 0)
+
         blockedQ = (len(self.blocked) > 0)
 
-        status = cpu or newQ or readyQ or blockedQ
+        # check io
+        io = (self.io is not None)
+
+        status = newQ or readyQ or cpu or blockedQ or io
 
         return status
 
@@ -257,9 +263,65 @@ class Machine:
 
             i += 1
 
-    def process_all_queues(self):
+    def __process_blocked_queue(self):
         """
-        handles the process queues and moving processes around
+        evaluates and advances the blocked queue
+        :return: None
+        """
+
+        # if a process is in blocked queue and io is available, move it io
+
+        if (len(self.blocked) > 0) and (self.io is None):
+
+            # remove the process from the blocked queue
+            p = self.blocked.pop()
+
+            # put the process in to io
+            self.io = p
+
+    def __process_io(self):
+        """
+        evaluates the io device
+        :return: None
+        """
+
+        # if there is a process in io
+        if self.io is not None:
+            # if the process has no bursts left, send it to exit queue
+            if len(self.io.bursts) == 0:
+                self.exit.append(self.io)
+                self.io = None
+            else:
+                burst = self.io.bursts[0]
+                # if the next burst is for cpu, move it to the ready queue
+                if burst[0] == "cpu":
+                    self.ready.append(self.io)
+                    self.io = None
+                if burst[0] == "io":
+                    # if io-burst is done, pop the burst, move the process to the ready queue or exit queue
+                    if burst[1] == 0:
+                        # remove the completed io-burst
+                        self.io.bursts.popleft()
+
+                        # move the process to the exit queue if there are no more bursts to do
+                        if len(self.io.bursts) == 0:
+                            self.exit.append(self.io)
+                            self.io = None
+                        else:
+                            nextBurst = self.io.bursts[0]
+                            # move the process to the ready queue if there are more cpu bursts to do
+                            if nextBurst[1] == "cpu":
+                                self.ready.append(self.io)
+                                self.io = None
+                            # in the case that the next burst is io, do nothing.  This will leave the process in io
+                            # to complete any remaining io bursts
+                    else:
+                        # if there are io-burst left to complete, decrement burst by 1
+                        self.io.bursts[0][1] -= 1
+
+    def process_all(self):
+        """
+        handles the process queues, cpu, and io devices and moving processes around
         :return: returns None
         """
 
@@ -291,39 +353,22 @@ class Machine:
         # if process is done and does not have any more bursts, move it to the exit queue
         self.__process_cpu()
 
-
         #
         # handle the blockedQ
         #
 
         # if a process in blocked queue and io is available, move it io
-
+        self.__process_blocked_queue()
 
         #
-        # handle the blockedQ
+        # handle the io device
         #
 
         # if IO is done and process has more burst left, move it to the readyQ
-
         # if IO is done and does not have any more bursts, move it to the exit queue
-
-
+        self.__process_io()
 
         # check if the machine has processes
         hasProcesses = self.has_processes()
 
         return hasProcesses
-
-    def print_queue_change(self, p, oldQueueName, newQueueName):
-        """
-        prints a processes queue change info
-        :param p: the process changing queues
-        :param oldQueueName: name of the old queue
-        :param newQueueName: name of the new queue
-        :return: None
-        """
-
-        print("process queue change:")
-        print("\ttime = " + str(self.time))
-        print("\t" + str(p))
-        print("\tmoved from " + oldQueueName + " queue to " + newQueueName + " queue")
