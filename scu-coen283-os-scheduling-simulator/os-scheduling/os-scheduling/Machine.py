@@ -1,23 +1,42 @@
 from collections import deque
 import Process
 
-
 class Machine:
 
-    def __init__(self):
-        self.machineTime = 0
+    def __init__(self, numCores = 1):
+        """
+        Initializes a machine object
+        :param numCores: number of cores in the CPU
+        """
+
+        self.time = 0
+
+        # cpu is a list of processes of size numCores (each representing a core on the cpu)
+        self.numCores = numCores
+        self.cpu = [None] * numCores
+
+        # io is a single device that handles only 1 io burst at a time
+        self.io = None
+
+        # queue for os handling of processes
         self.new = deque()
-        self.ready = deque()  # This is where the DataStructures class will apply.
-        self.running = None
+        self.ready = deque()
         self.blocked = deque()
         self.exit = deque()
-        self.quantum = Quantum(500)
-        self.useQuantum = False
+
+        # statistics data
+        # amount of time the cpu was used
+        self.cpuTimeUsed = 0
 
     def add(self, process):
+        """
+        Adds a process to the machine
+        :param process: the process to add
+        :return: None
+        """
         self.new.append(process)
 
-    def __strqueue(self, qname, q):
+    def __str_queue(self, qname, q):
         """
         Private method used to print a queue neatly.
         :param qname: name of the queue
@@ -41,122 +60,388 @@ class Machine:
         :return:
         """
         mystring = "---------------------------------------------" + "\n"
-        mystring += "Time : " + str(self.machineTime) + "\n"
+        mystring += "Time : " + str(self.time) + "\n"
+        mystring += "Number of cores: " + str(self.numCores) + "\n"
 
         # the new queues
-        mystring += self.__strqueue("New queue", self.new)
+        mystring += self.__str_queue("New queue", self.new)
 
         # the ready queue
-        mystring += self.__strqueue("Ready queue", self.ready)
-
-        # the running/CPU process
-        mystring += "CPU :\n"
-        mystring += "\t"
-        if self.running == None:
-            mystring += "<empty>"
-        else:
-            mystring += str(self.running)
-        mystring += "\n"
+        mystring += self.__str_queue("Ready queue", self.ready)
+        
+        # the running/CPU processes
+        mystring += "CPU:\n"
+        coreNum = 0
+        for p in self.cpu:
+            mystring += "\tcore " + str(coreNum) + ": "
+            if p is None:
+                mystring += "<empty>"
+            else:
+                mystring += str(p)
+            mystring += "\n"
+            coreNum += 1
 
         # the blocked queue
-        mystring += self.__strqueue("Blocked queue", self.blocked)
+        mystring += self.__str_queue("Blocked queue", self.blocked)
+
+        # the io device
+        mystring += "IO:\n"
+        if self.io is None:
+            mystring += "\t<empty>"
+        else:
+            mystring += "\t" + str(self.io)
+        mystring += "\n"
 
         # the exit queue
-        mystring += self.__strqueue("Exit queue", self.exit)
+        mystring += self.__str_queue("Exit queue", self.exit)
 
         mystring += "---------------------------------------------" + "\n"
 
         return mystring
 
-    def advanceTime(self):
-        # returns False if time was not advanced, True if it was
-        # self.newTime is the time until arrival
+    def has_processes(self):
+        """
+        Does the machine have processes in it
+        :return: True if the machine has processes
+        """
 
-        newTime = self.new[0].getTime() if len(self.new) > 0 else None
-        runningTime = None if self.running is None else self.running.getTime()
-        blockedTime = None if len(self.blocked) == 0 else self.blocked[0].getTime()
-        quantumTime = None if self.useQuantum is False else self.quantum.getTime()
-        times = list()
+        newQ = (len(self.new) > 0)
+        readyQ = (len(self.ready) > 0)
 
-        if newTime is not None:
-            times.append(newTime)
-        if runningTime is not None:
-            times.append(runningTime)
-        if blockedTime is not None:
-            times.append(blockedTime)
-        if quantumTime is not None:
-            times.append(quantumTime)
+        # check all cores for processes
+        cpu = False
+        for core in self.cpu:
+            if core is not None:
+                cpu = True
 
-        if len(times) == 0:
-            return False  # this means that the new queue is empty, the running state is empty, and the self.blocked queue is empty
-        # print("times = " + str(times))
-        delta = min(times)
-        self.machineTime += delta
-        preempt = self.quantum.decrement(delta) #decrement and set preemption here
 
-        if len(self.blocked) > 0 and self.blocked[0].decrement(delta):
-            # if there is something self.blocked and this time advancement zeroes out the wait time of the frontmost process
+        blockedQ = (len(self.blocked) > 0)
 
-            # dequeue from self.blocked and enqueue into self.ready
-            p = self.blocked.popleft()
-            self.ready.append(p)
-            p.printqueuechange("Blocked", "Ready")
+        # check io
+        io = (self.io is not None)
 
-        if self.running is not None:
-            if self.running.decrement(delta):
-                # if there is something running and this time advancement zeroes out its burst time
-                if self.running.finished:
-                    # add to the finished queue
-                    p = self.running
-                    self.exit.append(p)
-                    p.printqueuechange("CPU", "Exit")
+        status = newQ or readyQ or cpu or blockedQ or io
+
+        return status
+
+    def __add_process_to_cpu(self, p):
+        """
+        Adds a process to an available slot on the cpu
+        :param p:
+        :return: None
+        """
+
+        assigned = False
+        i = 0
+
+        # loop through the cores adding a process to any available core
+        while (i < len(self.cpu)) and (not assigned):
+
+            if self.cpu[i] is None:
+                self.cpu[i] = p
+                assigned = True
+
+            i += 1
+
+    def __cpu_is_available(self):
+        """
+        Returns true if the cpu is empty
+        :return:
+        """
+
+        # check all the cores to see if any core is available, if any core is available
+        # return true
+        isAvailable = False
+        for core in self.cpu:
+            if core is None:
+                isAvailable = True
+
+        return isAvailable
+
+    def __process_new_queue(self):
+        """
+        evaluates and advances the new queue
+        :return: None
+        """
+
+        # if any processes in newQ can proceed put them in the readyQ
+
+        temp = deque()
+
+        while len(self.new) > 0:
+
+            p = self.new.pop()
+
+            # if the process p can start put it in the ready q, if not, put it in the tempQ
+            if p.startTime <= self.time:
+                self.ready.append(p)
+            else:
+                temp.appendleft(p)
+
+        # put in processes not moved to the ready q back in to the new q
+        self.new = temp
+
+    def __process_ready_queue(self):
+        """
+        evaluates and advances the ready queue
+        :return: None
+        """
+
+        temp = deque()
+
+        # if any process in readyQ has cpu-burst next, move it to any available core
+        # if any process in readyQ has io-burst next, move it to the blocked queue
+
+        while len(self.ready) > 0:
+
+            p = self.ready.pop()
+
+            # if any process in readyQ has cpu-burst next, move it to any available core
+            # if remaining bursts are 0, the process is done and should be in the exit queue
+
+            if len(p.bursts) == 0:
+                print("ERROR: moving process from ready queue directly to exit queue")
+                self.exit.append(p)
+            else:
+                burst = p.bursts[0]
+                if burst[0] == "cpu":
+
+                    # if cpu is available add process to cpu, otherwise leave it in the ready q
+                    if self.__cpu_is_available():
+                        self.__add_process_to_cpu(p)
+                    else:
+                        temp.appendleft(p)
+                # if burst is an io-burst, move it to the blocked queue
+                if burst[0] == "io":
+                    self.blocked.append(p)
+
+        # put that processes that were not moved to the cpu or blocked q back in to the ready q
+        self.ready = temp
+
+
+    def __process_cpu(self):
+        """
+        evaluates and handles processes in the cpu, moving them to appropriate queues
+        when they are done
+        :return: None
+        """
+
+
+        # for each process on the CPU, check if the cpu burst is done and
+        # process it.
+        # if process is done on any of the CPU cores and has io-burst next, move it to blocked queue
+        # if process is done on any of the CPU cores and has cpu-burst next, leave it in the CPU
+        # if process is done and does not have any more bursts, move it to the exit queue
+
+        i = 0
+        while i < len(self.cpu):
+            p = self.cpu[i]
+
+            # if this core has a process
+            if p is not None:
+
+                # get the first burst
+                burst = p.bursts[0]
+
+                # the cpu-burst is done when there is no more time left in the burst value
+                burstIsDone = (burst[1] == 0)
+                if burstIsDone:
+                    # pop the burst off the bursts queue
+                    p.bursts.popleft()
+
+                    # if there are no more burst left, we are done.  Move process to the exit queue
+                    # and free up this cpu core.
+                    if len(p.bursts) == 0:
+                        self.exit.append(p)
+                        self.cpu[i] = None
+                    else:
+                        # if next burst is io, move the process to the blocked queue
+                        if p.bursts[0][0] == "io":
+                            self.blocked.append(p)
+                            self.cpu[i] = None
 
                 else:
-                    # it's self.blocked now (internal flagging happened already)
-                    p = self.running
-                    self.blocked.append(p)
-                    p.printqueuechange("CPU", "Blocked")
-                self.running = None  # set running to None
-            elif preempt:  # when preemption happens, it always removes the process from running and puts it into self.ready
-                # put it back into the self.ready queue
-                p = self.running
-                self.ready.append(p)
-                p.printqueuechange("CPU", "Ready")
-                self.running = None  # set running to None
+                    # if burst is not done, decrease the cpu-burst value by 1 and leave
+                    # the process on the cpu for more processing
+                    p.bursts[0][1] = p.bursts[0][1] - 1
 
-        if len(self.ready) > 0 and self.running is None:  # if there's something self.ready and nothing running
-            # take the frontmost element out of the self.ready queue and put it into the running spot
-            p = self.ready.popleft()
-            self.running = p
-            p.printqueuechange("Ready", "CPU")
+            i += 1
 
-        if len(self.new) > 0 and self.new[0].decrement(delta):
-            # if there is a self.new process and this time advancement zeroes out the delay of the frontmost process
-            # take process from self.new and put it into self.ready
-            p = self.new.popleft()
-            self.ready.append(p)
-            p.printqueuechange("New", "Ready")
+    def __process_blocked_queue(self):
+        """
+        evaluates and advances the blocked queue
+        :return: None
+        """
 
-        return True  # do this at the end because two of the above blocks may execute during the same time slice
+        # if a process is in blocked queue and io is available, move it io
 
+        if (len(self.blocked) > 0) and (self.io is None):
 
-class Quantum:
+            # remove the process from the blocked queue
+            p = self.blocked.pop()
 
-    def __init__(self, qTime):
-        self.qTime = qTime
-        self.timeRemaining = qTime
+            # put the process in to io
+            self.io = p
 
-    def setQuantum(self, qTime):
-        self.qTime = qTime
+    def __process_io(self):
+        """
+        evaluates the io device
+        :return: None
+        """
 
-    def getTime(self):
-        return self.timeRemaining
+        # if there is a process in io
+        if self.io is not None:
+            # if the process has no bursts left, send it to exit queue
+            if len(self.io.bursts) == 0:
+                self.exit.append(self.io)
+                self.io = None
+            else:
+                burst = self.io.bursts[0]
+                # if the next burst is for cpu, move it to the ready queue
+                if burst[0] == "cpu":
+                    self.ready.append(self.io)
+                    self.io = None
+                if burst[0] == "io":
+                    # if io-burst is done, pop the burst, move the process to the ready queue or exit queue
+                    if burst[1] == 0:
+                        # remove the completed io-burst
+                        self.io.bursts.popleft()
 
-    def decrement(self, time):
-        self.timeRemaining -= time
-        expired = self.timeRemaining <= 0
-        # if time quantum is expired, reset time
-        if expired:
-            self.timeRemaining = self.qTime
-        return expired
+                        # move the process to the exit queue if there are no more bursts to do
+                        if len(self.io.bursts) == 0:
+                            self.exit.append(self.io)
+                            self.io = None
+                        else:
+                            nextBurst = self.io.bursts[0]
+                            # move the process to the ready queue if there are more cpu bursts to do
+                            if nextBurst[0] == "cpu":
+                                self.ready.append(self.io)
+                                self.io = None
+                            # in the case that the next burst is io, do nothing.  This will leave the process in io
+                            # to complete any remaining io bursts
+                    else:
+                        # if there are io-burst left to complete, decrement burst by 1
+                        self.io.bursts[0][1] -= 1
 
+    def process_all(self):
+        """
+        handles the process queues, cpu, and io devices and moving processes around
+        :return: returns None
+        """
+
+        hasProcesses = False
+
+        # adjust processes
+
+        #
+        # handle the newQ
+        #
+
+        # if any processes in newQ can proceed put them in the readyQ
+        self.__process_new_queue()
+
+        #
+        # handle the readyQ
+        #
+
+        # if any process in readyQ has cpu-burst next, move it to any available core
+        # if any process in readyQ has io-burst next, move it to the blocked queue
+        self.__process_ready_queue()
+
+        #
+        # handle the CPU
+        #
+
+        # if process is done on any of the CPU cores and has io-burst next, move them to blocked queue
+        # if process is done on any of the CPU cores and has cpu-burst next, leave it in the CPU
+        # if process is done and does not have any more bursts, move it to the exit queue
+        self.__process_cpu()
+
+        #
+        # handle the blockedQ
+        #
+
+        # if a process in blocked queue and io is available, move it io
+        self.__process_blocked_queue()
+
+        #
+        # handle the io device
+        #
+
+        # if IO is done and process has more burst left, move it to the readyQ
+        # if IO is done and does not have any more bursts, move it to the exit queue
+        self.__process_io()
+
+        # check if the machine has processes
+        hasProcesses = self.has_processes()
+
+        return hasProcesses
+
+    def print_statistics(self):
+
+        n = len(self.exit)
+        if n == 0:
+            return None
+
+        if self.time == 0:
+            return None
+
+        print("---------------------------------------------")
+        print("Statistics:")
+        print("")
+
+        print("CPU utilization %:")
+        util = (self.cpuTimeUsed / self.time) * 100
+        print("\tCPU utilization = " + str("%.1f" % util) + "%")
+        print("")
+
+        print("Throughput:")
+        throughput = n / self.time
+        print("\tThroughput = " + str("%.4f" % throughput))
+        print("")
+
+        print("Turn Around Time:")
+        total = 0
+        for p in self.exit:
+            s = "\tTurn Around Time of process ["
+            s += "id = " + str(p.id)
+            s += ", name = " + p.name
+            s += "] = "
+            s += str(p.turnAroundTime)
+            print(s)
+            total += p.turnAroundTime
+
+        average = total / n
+        print("\tAverage Turn Around Time = " + ("%.2f" % average))
+        print("")
+
+        print("Wait Time:")
+        total = 0
+        for p in self.exit:
+            s = "\tWait Time of process ["
+            s += "id = " + str(p.id)
+            s += ", name = " + p.name
+            s += "] = "
+            s += str(p.waitTime)
+            print(s)
+            total += p.waitTime
+
+        average = total / n
+        print("\tAverage Wait Time = " + ("%.2f" % average))
+        print("")
+
+        print("Response Time:")
+        total = 0
+        for p in self.exit:
+            s = "\tResponse Time of process ["
+            s += "id = " + str(p.id)
+            s += ", name = " + p.name
+            s += "] = "
+            s += str(p.responseTime)
+            print(s)
+            total += p.responseTime
+
+        average = total / n
+        print("\tAverage Response Time = " + ("%.2f" % average))
+
+        print("---------------------------------------------")
