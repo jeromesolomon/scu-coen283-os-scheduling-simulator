@@ -24,6 +24,10 @@ class Machine:
         self.blocked = deque()
         self.exit = deque()
 
+        # statistics data
+        # amount of time the cpu was used
+        self.cpuTimeUsed = 0
+
     def add(self, process):
         """
         Adds a process to the machine
@@ -372,3 +376,72 @@ class Machine:
         hasProcesses = self.has_processes()
 
         return hasProcesses
+
+    def print_statistics(self):
+
+        n = len(self.exit)
+        if n == 0:
+            return None
+
+        if self.time == 0:
+            return None
+
+        print("---------------------------------------------")
+        print("Statistics:")
+        print("")
+
+        print("CPU utilization %:")
+        util = (self.cpuTimeUsed / self.time) * 100
+        print("\tCPU utilization = " + str("%.1f" % util) + "%")
+        print("")
+
+        print("Throughput:")
+        throughput = n / self.time
+        print("\tThroughput = " + str("%.4f" % throughput))
+        print("")
+
+        print("Turn Around Time:")
+        total = 0
+        for p in self.exit:
+            s = "\tTurn Around Time of process ["
+            s += "id = " + str(p.id)
+            s += ", name = " + p.name
+            s += "] = "
+            s += str(p.turnAroundTime)
+            print(s)
+            total += p.turnAroundTime
+
+        average = total / n
+        print("\tAverage Turn Around Time = " + ("%.2f" % average))
+        print("")
+
+        print("Wait Time:")
+        total = 0
+        for p in self.exit:
+            s = "\tWait Time of process ["
+            s += "id = " + str(p.id)
+            s += ", name = " + p.name
+            s += "] = "
+            s += str(p.waitTime)
+            print(s)
+            total += p.waitTime
+
+        average = total / n
+        print("\tAverage Wait Time = " + ("%.2f" % average))
+        print("")
+
+        print("Response Time:")
+        total = 0
+        for p in self.exit:
+            s = "\tResponse Time of process ["
+            s += "id = " + str(p.id)
+            s += ", name = " + p.name
+            s += "] = "
+            s += str(p.responseTime)
+            print(s)
+            total += p.responseTime
+
+        average = total / n
+        print("\tAverage Response Time = " + ("%.2f" % average))
+
+        print("---------------------------------------------")

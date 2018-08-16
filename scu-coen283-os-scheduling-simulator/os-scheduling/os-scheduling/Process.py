@@ -10,14 +10,14 @@ class Process:
     # global process id variable (start process IDs at 100)
     globalProcessID = 100
 
-    def __init__(self, processName, startTime):
+    def __init__(self, name, startTime):
         # this represents the process beginning at the new state
 
         # assign a unique process ID
-        self.processID = Process.globalProcessID
+        self.id = Process.globalProcessID
         Process.globalProcessID += 1
 
-        self.processName = processName
+        self.name = name
         self.startTime = startTime  # the time at which the process enter the system and is put in to the ready queue
 
         # list of the type of bursts (type,time)
@@ -26,7 +26,10 @@ class Process:
         # list of all bursts in the process
         self.bursts = deque()
 
-
+        # statistics
+        self.turnAroundTime = 0
+        self.waitTime = 0
+        self.responseTime = 0
 
     def set_by_stats(self, numBursts, burstMean, burstSD, ioMean, ioSD):
         """
@@ -70,10 +73,10 @@ class Process:
     def __str__(self):
 
         result = ""
-        result += "process ID: " + str(self.processID)
+        result += "process ID: " + str(self.id)
         result += " "
         result += "{"
-        result += "name = " + str(self.processName) + ", "
+        result += "name = " + str(self.name) + ", "
         result += "start time = " + str(self.startTime) + ", "
         result += "bursts = " + str(self.bursts)
         result += "}"

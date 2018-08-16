@@ -46,3 +46,7 @@ while(hasProcesses):
     # increase time
     machine.time += 1
 
+# print the statistics
+machine.print_statistics()
+
+
