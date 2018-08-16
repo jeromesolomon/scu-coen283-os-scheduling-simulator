@@ -211,7 +211,7 @@ class Machine:
                 if burst[0] == "io":
                     self.blocked.append(p)
 
-        # put in processes not moved to the cpu or blocked q back in to the ready q
+        # put that processes that were not moved to the cpu or blocked q back in to the ready q
         self.ready = temp
 
 
@@ -310,7 +310,7 @@ class Machine:
                         else:
                             nextBurst = self.io.bursts[0]
                             # move the process to the ready queue if there are more cpu bursts to do
-                            if nextBurst[1] == "cpu":
+                            if nextBurst[0] == "cpu":
                                 self.ready.append(self.io)
                                 self.io = None
                             # in the case that the next burst is io, do nothing.  This will leave the process in io
