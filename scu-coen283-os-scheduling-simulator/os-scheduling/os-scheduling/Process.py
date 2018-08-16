@@ -44,9 +44,9 @@ class Process:
 
         for i in range(numBursts):
             # generate a random time statistically for both process burst time and io time
-            self.processTimes.append(int(round(np.random.normal(burstMean, burstSD))))
+            self.add_cpu_burst(int(round(np.random.normal(burstMean, burstSD))))
             if i < numBursts-1:
-                io.append(int(round(np.random.normal(ioMean, ioSD))))
+                self.add_io_burst(int(round(np.random.normal(ioMean, ioSD))))
 
     def add_cpu_burst(self, cpuBurst):
         """
