@@ -23,28 +23,38 @@ machine.add(process)
 #
 
 # runs with lecture scheduling data
-# machine = ScheduleUtilities.create_lecture_example()
+machine = ScheduleUtilities.create_lecture_example()
 
 # multi-core test
 # machine = ScheduleUtilities.create_multi_core_test()
 # ScheduleUtilities.add_test_processes(machine)
 
 # single process test
-machine = ScheduleUtilities.create_single_process_test()
+# machine = ScheduleUtilities.create_single_process_test()
 
+# print machine initial state of machine
+print("Initial machine status:")
 print(machine)
-
+ 
 # run the machine to completion
-hasProcesses = True
-while(hasProcesses):
-    # process all the queues
-    hasProcesses = machine.process_all()
+print("Running the simulation:")
+while machine.process_all():
 
     # print status of the machine
     print(machine)
+    
+    # calculate statistics
+    machine.calculate_statistics()
+    
+    # process stage2 io
+    machine.process_io_stage2()
 
     # increase time
     machine.time += 1
+    
+# print the final machine status
+print("Final machine status:")
+print(machine)
 
 # print the statistics
 machine.print_statistics()

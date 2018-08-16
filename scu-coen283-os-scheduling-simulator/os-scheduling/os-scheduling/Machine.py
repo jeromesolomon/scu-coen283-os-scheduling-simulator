@@ -157,6 +157,20 @@ class Machine:
                 isAvailable = True
 
         return isAvailable
+        
+    def __cpu_has_a_core_busy(self):
+        """
+        Returns true if the cpu has one or more cores busy. if any of the cores has a process then it is busy
+        :return:
+        """
+
+        # check all the cores to see if any core has a process, if any core has a process return true
+        aCoreIsBusy = False
+        for core in self.cpu:
+            if core is not None:
+                aCoreIsBusy = True
+
+        return aCoreIsBusy
 
     def __process_new_queue(self):
         """
@@ -226,7 +240,6 @@ class Machine:
         :return: None
         """
 
-
         # for each process on the CPU, check if the cpu burst is done and
         # process it.
         # if process is done on any of the CPU cores and has io-burst next, move it to blocked queue
@@ -283,7 +296,7 @@ class Machine:
             # put the process in to io
             self.io = p
 
-    def __process_io(self):
+    def __process_io_stage1(self):
         """
         evaluates the io device
         :return: None
@@ -312,27 +325,68 @@ class Machine:
                         if len(self.io.bursts) == 0:
                             self.exit.append(self.io)
                             self.io = None
-                        else:
-                            nextBurst = self.io.bursts[0]
-                            # move the process to the ready queue if there are more cpu bursts to do
-                            if nextBurst[0] == "cpu":
-                                # add to ready queue
-                                self.ready.append(self.io)
-                                # clear the io device
-                                self.io = None
-                            # in the case that the next burst is io, do nothing.  This will leave the process in io
-                            # to complete any remaining io bursts
                     else:
                         # if there are io-burst left to complete, decrement burst by 1
                         self.io.bursts[0][1] -= 1
 
+    def process_io_stage2(self):
+        """
+        evaluates the io device second stage after the print occurs.  This allows the io to keep the CPU busy my moving processes that have completed their IO immediately to the ready queue for cpu scheduling on the next loop/cycle of the machine.
+        :return: None
+        """
+
+        # if there is a process in io
+        if self.io is not None:
+            # if the process has no bursts left, send it to exit queue
+            if len(self.io.bursts) == 0:
+                self.exit.append(self.io)
+                self.io = None
+            else:
+                burst = self.io.bursts[0]
+                # if the next burst is for cpu, move it to the ready queue
+                if burst[0] == "cpu":
+                    self.ready.append(self.io)
+                    self.io = None
+                if burst[0] == "io":
+                    # if io-burst is done, pop the burst, move
+                    # the process to the ready queue or exit queue
+                    if burst[1] == 0:
+                        # remove the completed io-burst
+                        self.io.bursts.popleft()
+
+                        # move the process to the exit queue if there are no more bursts to do
+                        if len(self.io.bursts) == 0:
+                            self.exit.append(self.io)
+                            self.io = None
+    	
+                        else:
+                        	nextBurst = self.io.bursts[0]
+                        	# move the process to the ready queue if there are more cpu bursts to do
+                        	if nextBurst[0] == "cpu":
+                        		# add to ready queue
+                        		self.ready.append(self.io)
+                        		# clear the io device
+                        		self.io = None
+                        		# in the case that the next burst is io, do nothing.  This will leave the process in io
+                        		# to complete any remaining io burst
+                            
+    def __process_exit_queue(self):
+        """
+        handles the exit queue.  processes are simple left in place. But, statistics are gathered.
+        :return: returns None
+        """
+        
+        # for each process in exit queue, if this is the first time, set the timestamp.
+        for p in self.exit:
+        	if (p.statsFirstTimeInExitQueue):
+        		statsExitQueueTimestamp = self.time
+        		p.statsFirstTimeInExitQueue = False
+    	
     def process_all(self):
         """
         handles the process queues, cpu, and io devices and moving processes around
         :return: returns None
         """
-
-        hasProcesses = False
 
         # adjust processes
 
@@ -373,15 +427,40 @@ class Machine:
 
         # if IO is done and process has more burst left, move it to the readyQ
         # if IO is done and does not have any more bursts, move it to the exit queue
-        self.__process_io()
+        # This is a two stage process.  Stage1 happens before printing data.  Stage2 occurs after printing and the io is complete to move processes immediately to the ready queue
+        self.__process_io_stage1()
+        
+        #
+        # handles the exit queue
+        #
+        self.__process_exit_queue()
 
         # check if the machine has processes
         hasProcesses = self.has_processes()
 
         return hasProcesses
+        
+    def calculate_statistics(self):
+        """
+        calculates the statistics
+        :return: returns None
+        """
+        # if the any core has a process, increase the cpu time stats
+        if self.__cpu_has_a_core_busy():
+        	self.cpuTimeUsed += 1
+        	
+        # for each process running on a core if first time on cpu, set timestamp
+        for core in self.cpu:
+        	if core is not None:
+        		if core.statsFirstTimeOnCPU:
+        			core.statsFirstTimeOnCPUTimestamp = self.time
+        			core.statsFirstTimeOnCPU = False
 
     def print_statistics(self):
-
+        """
+        prints the statistics
+        :return: returns None
+        """
         n = len(self.exit)
         if n == 0:
             return None
@@ -406,13 +485,19 @@ class Machine:
         print("Turn Around Time:")
         total = 0
         for p in self.exit:
-            s = "\tTurn Around Time of process ["
-            s += "id = " + str(p.id)
-            s += ", name = " + p.name
-            s += "] = "
-            s += str(p.turnAroundTime)
+        	
+            s = "\tTurn Around Time of process "
+            s += "id #: "  + str(p.id)
+            s += " name: " + p.name
+            s += " = "
+            
+            # calculate turn around time time
+            turnAroundTime = p.statsExitQueueTimestamp - p.statsFirstTimeOnCPUTimestamp
+            s += str(turnAroundTime)
+            
             print(s)
-            total += p.turnAroundTime
+            
+            total += turnAroundTime
 
         average = total / n
         print("\tAverage Turn Around Time = " + ("%.2f" % average))
@@ -421,13 +506,19 @@ class Machine:
         print("Wait Time:")
         total = 0
         for p in self.exit:
-            s = "\tWait Time of process ["
-            s += "id = " + str(p.id)
-            s += ", name = " + p.name
-            s += "] = "
-            s += str(p.waitTime)
+        	
+            s = "\tWait Time of process "
+            s += "id #: " + str(p.id)
+            s += " name: " + p.name
+            s += " = "
+            
+            # calculate wait time
+            waitTime = 0
+            s += str(waitTime)
+            
             print(s)
-            total += p.waitTime
+            
+            total += waitTime
 
         average = total / n
         print("\tAverage Wait Time = " + ("%.2f" % average))
@@ -436,13 +527,19 @@ class Machine:
         print("Response Time:")
         total = 0
         for p in self.exit:
-            s = "\tResponse Time of process ["
-            s += "id = " + str(p.id)
-            s += ", name = " + p.name
-            s += "] = "
-            s += str(p.responseTime)
+        	
+            s = "\tResponse Time of process "
+            s += "id #: " + str(p.id)
+            s += " name: " + p.name
+            s += " = "
+            
+            # calculate response time
+            responseTime = 0
+            s += str(responseTime)
+            
             print(s)
-            total += p.responseTime
+            
+            total += responseTime
 
         average = total / n
         print("\tAverage Response Time = " + ("%.2f" % average))

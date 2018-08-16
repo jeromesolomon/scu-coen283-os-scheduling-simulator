@@ -27,9 +27,19 @@ class Process:
         self.bursts = deque()
 
         # statistics
-        self.turnAroundTime = 0
-        self.waitTime = 0
-        self.responseTime = 0
+        
+        # turn around time stats
+        self.statsFirstTimeOnCPU = True
+        self.statsFirstTimeOnCPUTimestamp = 0
+        self.statsFirstTimeInExitQueue = True
+        self.statsExitQueueTimestamp = 0
+        
+        # wait time
+        self.statsTotalTimeInReadyQueue = 0
+        
+        # response time
+        self.statsFirstTimeInReadyQueue = True
+        self.statsTotalTimeInReadyQueueForFirstTime = 0
 
     def set_by_stats(self, numBursts, burstMean, burstSD, ioMean, ioSD):
         """
@@ -54,10 +64,9 @@ class Process:
         :param cpuBurst: amoount of time for cpu burst
         :return: None
         """
-
-        b = ["cpu", cpuBurst]
-
-        self.bursts.append(b)
+        if cpuBurst > 0:
+        	b = ["cpu", cpuBurst]
+        	self.bursts.append(b)
 
     def add_io_burst(self, ioBurst):
         """
@@ -65,10 +74,9 @@ class Process:
         :param cpuBurst: amoount of time for cpu burst
         :return: None
         """
-
-        b = ["io", ioBurst]
-
-        self.bursts.append(b)
+        if ioBurst > 0:
+        	b = ["io", ioBurst]
+        	self.bursts.append(b)
 
     def __str__(self):
 
