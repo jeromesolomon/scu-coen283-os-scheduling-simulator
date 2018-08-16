@@ -302,7 +302,8 @@ class Machine:
                     self.ready.append(self.io)
                     self.io = None
                 if burst[0] == "io":
-                    # if io-burst is done, pop the burst, move the process to the ready queue or exit queue
+                    # if io-burst is done, pop the burst, move
+                    # the process to the ready queue or exit queue
                     if burst[1] == 0:
                         # remove the completed io-burst
                         self.io.bursts.popleft()
@@ -315,7 +316,9 @@ class Machine:
                             nextBurst = self.io.bursts[0]
                             # move the process to the ready queue if there are more cpu bursts to do
                             if nextBurst[0] == "cpu":
+                                # add to ready queue
                                 self.ready.append(self.io)
+                                # clear the io device
                                 self.io = None
                             # in the case that the next burst is io, do nothing.  This will leave the process in io
                             # to complete any remaining io bursts

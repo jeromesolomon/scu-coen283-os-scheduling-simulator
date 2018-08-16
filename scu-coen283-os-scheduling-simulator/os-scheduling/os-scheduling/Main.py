@@ -8,6 +8,7 @@ import ScheduleUtilities
 #
 machine = Machine.Machine()
 
+"""
 process = Process.Process("A", 0)
 process.set_by_stats(1, 35, 0, 0, 0)  # makes a process with 1 burst of length 35, no io.
 machine.add(process)
@@ -15,7 +16,7 @@ machine.add(process)
 process = Process.Process("B", 5)
 process.set_by_stats(1, 35, 0, 0, 0)  # makes a process with 1 burst of length 35, no io, enters 5 time units after previous process.
 machine.add(process)
-
+"""
 
 #
 # Jerome's Test Cases
@@ -29,7 +30,7 @@ machine.add(process)
 # ScheduleUtilities.add_test_processes(machine)
 
 # single process test
-# machine = ScheduleUtilities.create_single_process_test()
+machine = ScheduleUtilities.create_single_process_test()
 
 print(machine)
 
