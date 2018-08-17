@@ -32,6 +32,17 @@ machine = ScheduleUtilities.create_lecture_example()
 # single process test
 # machine = ScheduleUtilities.create_single_process_test()
 
+# open a csv file for saving & viewing the simulation in excel
+csvFileName = "simulation_output"
+try:
+    csvFile = open(csvFileName + ".csv", "w")
+except IOError:
+    print("ERROR: opening the file " + csvFileName)
+    exit(-1)
+
+# write the csv header
+machine.csv_write_header(csvFile)
+
 # print machine initial state of machine
 print("Initial machine status:")
 print(machine)
@@ -42,6 +53,11 @@ while machine.process_all():
 
     # print status of the machine
     print(machine)
+
+    # write a line to the csv file
+    machine.csv_write(csvFile)
+
+    # save machine data to csv
     
     # calculate statistics
     machine.calculate_statistics()
@@ -58,5 +74,9 @@ print(machine)
 
 # print the statistics
 machine.print_statistics()
+
+# close the file
+csvFile.close()
+
 
 

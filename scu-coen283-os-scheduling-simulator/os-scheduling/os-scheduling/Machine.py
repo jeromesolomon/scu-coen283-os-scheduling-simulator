@@ -124,6 +124,35 @@ class Machine:
 
         return status
 
+    def number_of_processes(self):
+        """
+        returns the number of processes in the machine
+        :return: numProcesses
+        """
+
+        numNew = len(self.new)
+        numReady = len(self.ready)
+
+        # check all cores for processes
+        numCPU = 0
+        for core in self.cpu:
+            if core is not None:
+                numCPU += 1
+
+        numBlocked = len(self.blocked)
+
+        # check io
+        if self.io is None:
+            numIO = 0
+        else:
+            numIO = 1
+
+        numExit = len(self.exit)
+
+        total = numNew + numReady + numCPU + numBlocked + numIO + numExit
+
+        return total
+
     def __add_process_to_cpu(self, p):
         """
         Adds a process to an available slot on the cpu
@@ -208,7 +237,7 @@ class Machine:
 
         while len(self.ready) > 0:
 
-            p = self.ready.pop()
+            p = self.ready.popleft()
 
             # if any process in readyQ has cpu-burst next, move it to any available core
             # if remaining bursts are 0, the process is done and should be in the exit queue
@@ -331,7 +360,9 @@ class Machine:
 
     def process_io_stage2(self):
         """
-        evaluates the io device second stage after the print occurs.  This allows the io to keep the CPU busy my moving processes that have completed their IO immediately to the ready queue for cpu scheduling on the next loop/cycle of the machine.
+        evaluates the io device second stage after the print occurs.  This allows the io to keep the CPU busy my
+        moving processes that have completed their IO immediately to the ready queue for cpu
+        scheduling on the next loop/cycle of the machine.
         :return: None
         """
 
@@ -358,17 +389,17 @@ class Machine:
                         if len(self.io.bursts) == 0:
                             self.exit.append(self.io)
                             self.io = None
-    	
+
                         else:
-                        	nextBurst = self.io.bursts[0]
-                        	# move the process to the ready queue if there are more cpu bursts to do
-                        	if nextBurst[0] == "cpu":
-                        		# add to ready queue
-                        		self.ready.append(self.io)
-                        		# clear the io device
-                        		self.io = None
-                        		# in the case that the next burst is io, do nothing.  This will leave the process in io
-                        		# to complete any remaining io burst
+                            nextBurst = self.io.bursts[0]
+                            # move the process to the ready queue if there are more cpu bursts to do
+                            if nextBurst[0] == "cpu":
+                                # add to ready queue
+                                self.ready.append(self.io)
+                                # clear the io device
+                                self.io = None
+                                # in the case that the next burst is io, do nothing.  This will leave the process in io
+                                # to complete any remaining io burst
                             
     def __process_exit_queue(self):
         """
@@ -378,9 +409,9 @@ class Machine:
         
         # for each process in exit queue, if this is the first time, set the timestamp.
         for p in self.exit:
-        	if (p.statsFirstTimeInExitQueue):
-        		statsExitQueueTimestamp = self.time
-        		p.statsFirstTimeInExitQueue = False
+            if (p.statsFirstTimeInExitQueue):
+                statsExitQueueTimestamp = self.time
+                p.statsFirstTimeInExitQueue = False
     	
     def process_all(self):
         """
@@ -427,7 +458,8 @@ class Machine:
 
         # if IO is done and process has more burst left, move it to the readyQ
         # if IO is done and does not have any more bursts, move it to the exit queue
-        # This is a two stage process.  Stage1 happens before printing data.  Stage2 occurs after printing and the io is complete to move processes immediately to the ready queue
+        # This is a two stage process.  Stage1 happens before printing data.  Stage2 occurs after printing and the
+        # io is complete to move processes immediately to the ready queue
         self.__process_io_stage1()
         
         #
@@ -447,14 +479,14 @@ class Machine:
         """
         # if the any core has a process, increase the cpu time stats
         if self.__cpu_has_a_core_busy():
-        	self.cpuTimeUsed += 1
+            self.cpuTimeUsed += 1
         	
         # for each process running on a core if first time on cpu, set timestamp
         for core in self.cpu:
-        	if core is not None:
-        		if core.statsFirstTimeOnCPU:
-        			core.statsFirstTimeOnCPUTimestamp = self.time
-        			core.statsFirstTimeOnCPU = False
+            if core is not None:
+                if core.statsFirstTimeOnCPU:
+                    core.statsFirstTimeOnCPUTimestamp = self.time
+                    core.statsFirstTimeOnCPU = False
 
     def print_statistics(self):
         """
@@ -545,3 +577,104 @@ class Machine:
         print("\tAverage Response Time = " + ("%.2f" % average))
 
         print("---------------------------------------------")
+
+    def csv_write_header(self, csvFile):
+        """
+        write a header to the csv file
+        :return:
+        """
+
+        s = ""
+
+        numProcesses = self.number_of_processes()
+
+        s += "Time,"
+
+        # new queue
+        s += "New Queue,"
+
+        # ready queue
+        s += "Ready Queue,"
+
+        # cpu cores
+        for i in range(0, len(self.cpu)):
+            s += "CPU Core " + str(i) + ","
+
+        # blocked queue
+        s += "Blocked Queue,"
+
+        # io device
+        s += "IO,"
+
+        # exit queue
+        s += "Exit Queue" + "\n"
+
+        csvFile.write(s)
+
+    def csv_write(self, csvFile):
+        """
+        write a line to the csv file
+        :return:
+        """
+
+        s = ""
+
+        numProcesses = self.number_of_processes()
+
+        s += str(self.time) + ","
+
+        # new queue
+        for i in range(0, numProcesses):
+            qLen = len(self.new)
+            if i < qLen:
+                s += self.new[i].name + " "
+            else:
+                s += ""
+        s += ","
+
+        # ready queue
+        for i in range(0, numProcesses):
+            qLen = len(self.ready)
+            if i < qLen:
+                s += self.ready[i].name + " "
+            else:
+                s += ""
+        s += ","
+
+        # cpu cores
+        for i in range(0, len(self.cpu)):
+            if self.cpu[i] is None:
+                s += ","
+            else:
+                s += self.cpu[i].name + ","
+
+        # blocked queue
+        for i in range(0, numProcesses):
+            qLen = len(self.blocked)
+            if i < qLen:
+                s += self.blocked[i].name + " "
+            else:
+                s += ""
+        s += ","
+
+        # io
+        if self.io is None:
+            s += ","
+        else:
+            s += self.io.name + ","
+
+        # exit queue
+        for i in range(0, numProcesses - 1):
+            qLen = len(self.exit)
+            if i < qLen:
+                s += self.exit[i].name + " "
+            else:
+                s += ""
+        i = numProcesses - 1
+        qLen = len(self.new)
+        if i < qLen:
+            s += self.exit[i].name + "\n"
+        else:
+            s += "\n"
+
+        csvFile.write(s)
