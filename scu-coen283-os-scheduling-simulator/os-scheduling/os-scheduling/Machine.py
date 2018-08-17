@@ -434,7 +434,7 @@ class Machine:
                             
     def __process_exit_queue(self):
         """
-        handles the exit queue.  processes are simple left in place. But, statistics are gathered.
+        handles the exit queue.  processes are simply left in place. But, statistics are gathered.
         :return: returns None
         """
         

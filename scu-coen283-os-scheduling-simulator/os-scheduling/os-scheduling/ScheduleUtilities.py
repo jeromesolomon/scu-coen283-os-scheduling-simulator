@@ -6,7 +6,7 @@ Utility functions for schedule toolset
 """
 
 
-def create_lecture_example():
+def create_lecture_example(numCores = 1):
     """
     Creates the example of four processes from Professor Amr Elkady's lecture
     :return: returns a machine with the lecture example processes
@@ -16,7 +16,7 @@ def create_lecture_example():
     # Professor Amr Elkady's class lecture example
     #
 
-    machine = Machine.Machine(1)
+    machine = Machine.Machine(numCores)
 
     # process A
     processA = Process.Process("A", 0)

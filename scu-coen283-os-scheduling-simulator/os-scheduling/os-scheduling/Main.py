@@ -23,7 +23,7 @@ machine.add(process)
 #
 
 # runs with lecture scheduling data
-machine = ScheduleUtilities.create_lecture_example()
+machine = ScheduleUtilities.create_lecture_example(1)
 
 # multi-core test
 # machine = ScheduleUtilities.create_multi_core_test()
@@ -56,8 +56,6 @@ while machine.process_all():
 
     # write a line to the csv file
     machine.csv_write(csvFile)
-
-    # save machine data to csv
     
     # calculate statistics
     machine.calculate_statistics()
