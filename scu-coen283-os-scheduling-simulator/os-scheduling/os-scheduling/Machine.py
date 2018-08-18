@@ -441,7 +441,7 @@ class Machine:
         # for each process in exit queue, if this is the first time, set the timestamp.
         for p in self.exit:
             if (p.statsFirstTimeInExitQueue):
-                statsExitQueueTimestamp = self.time
+                p.statsExitQueueTimestamp = self.time
                 p.statsFirstTimeInExitQueue = False
     	
     def process_all(self):
@@ -548,9 +548,9 @@ class Machine:
         print("Turn Around Time:")
         total = 0
         for p in self.exit:
-        	
+
             s = "\tTurn Around Time of process "
-            s += "id #: "  + str(p.id)
+            s += "id #: " + str(p.id)
             s += " name: " + p.name
             s += " = "
             
@@ -569,7 +569,7 @@ class Machine:
         print("Wait Time:")
         total = 0
         for p in self.exit:
-        	
+
             s = "\tWait Time of process "
             s += "id #: " + str(p.id)
             s += " name: " + p.name
@@ -590,7 +590,7 @@ class Machine:
         print("Response Time:")
         total = 0
         for p in self.exit:
-        	
+
             s = "\tResponse Time of process "
             s += "id #: " + str(p.id)
             s += " name: " + p.name
