@@ -6,9 +6,9 @@ import ScheduleUtilities
 #
 # Jon's original example
 #
+"""
 machine = Machine.Machine()
 
-"""
 process = Process.Process("A", 0)
 process.set_by_stats(1, 35, 0, 0, 0)  # makes a process with 1 burst of length 35, no io.
 machine.add(process)

@@ -28,18 +28,20 @@ class Process:
 
         # statistics
         
-        # turn around time stats
-        self.statsFirstTimeOnCPU = True
-        self.statsFirstTimeOnCPUTimestamp = 0
+        # turn around time stats & response time stats
+        self.statsFirstTimeInReadyQueue = True
+        self.statsFirstTimeInReadyQueueTimestamp = 0
+
         self.statsFirstTimeInExitQueue = True
         self.statsExitQueueTimestamp = 0
         
         # wait time
         self.statsTotalTimeInReadyQueue = 0
-        
+
         # response time
-        self.statsFirstTimeInReadyQueue = True
         self.statsTotalTimeInReadyQueueForFirstTime = 0
+
+
 
     def set_by_stats(self, numBursts, burstMean, burstSD, ioMean, ioSD):
         """

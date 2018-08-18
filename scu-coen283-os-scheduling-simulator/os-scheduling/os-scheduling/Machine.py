@@ -114,7 +114,6 @@ class Machine:
             if core is not None:
                 cpu = True
 
-
         blockedQ = (len(self.blocked) > 0)
 
         # check io
@@ -440,10 +439,10 @@ class Machine:
         
         # for each process in exit queue, if this is the first time, set the timestamp.
         for p in self.exit:
-            if (p.statsFirstTimeInExitQueue):
+            if p.statsFirstTimeInExitQueue:
                 p.statsExitQueueTimestamp = self.time
                 p.statsFirstTimeInExitQueue = False
-    	
+
     def process_all(self):
         """
         handles the process queues, cpu, and io devices and moving processes around
@@ -511,13 +510,16 @@ class Machine:
         # if the any core has a process, increase the cpu time stats
         if self.__cpu_has_a_core_busy():
             self.cpuTimeUsed += 1
-        	
+
         # for each process running on a core if first time on cpu, set timestamp
-        for core in self.cpu:
-            if core is not None:
-                if core.statsFirstTimeOnCPU:
-                    core.statsFirstTimeOnCPUTimestamp = self.time
-                    core.statsFirstTimeOnCPU = False
+        for p in self.ready:
+            if p is not None:
+                if p.statsFirstTimeInReadyQueue:
+                    if p.startTime == 0:
+                        p.statsFirstTimeInReadyQueueTimestamp = 0
+                    else:
+                        p.statsFirstTimeInReadyQueueTimestamp = self.time
+                    p.statsFirstTimeInReadyQueue = False
 
     def print_statistics(self):
         """
@@ -555,7 +557,7 @@ class Machine:
             s += " = "
             
             # calculate turn around time time
-            turnAroundTime = p.statsExitQueueTimestamp - p.statsFirstTimeOnCPUTimestamp
+            turnAroundTime = p.statsExitQueueTimestamp - p.statsFirstTimeInReadyQueueTimestamp
             s += str(turnAroundTime)
             
             print(s)
@@ -616,8 +618,6 @@ class Machine:
         """
 
         s = ""
-
-        numProcesses = self.number_of_processes()
 
         s += "Time,"
 
