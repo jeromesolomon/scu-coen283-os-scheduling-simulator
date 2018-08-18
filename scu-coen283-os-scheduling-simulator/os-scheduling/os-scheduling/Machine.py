@@ -284,9 +284,6 @@ class Machine:
                 # the process on the cpu for more processing
                 self.cpu[availableCoreIndex].bursts[0][1] = self.cpu[availableCoreIndex].bursts[0][1] - 1
 
-
-
-
     def __process_cpu(self):
         """
         evaluates and handles processes in the cpu, moving them to appropriate queues
@@ -308,6 +305,7 @@ class Machine:
             if p is not None:
 
                 # get the first burst
+
                 burst = p.bursts[0]
 
                 # the cpu-burst is done when there is no more time left in the burst value
