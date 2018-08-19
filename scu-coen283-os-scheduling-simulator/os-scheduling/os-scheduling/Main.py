@@ -1,3 +1,6 @@
+import os
+import datetime
+
 import Process
 import Machine
 import ScheduleUtilities
@@ -33,17 +36,18 @@ machine = ScheduleUtilities.create_lecture_example(1)
 # single process test
 # machine = ScheduleUtilities.create_single_process_test()
 
-# open a csv file for saving & viewing the simulation in excel
-csvFileName = "simulation_output"
-csvFile = None
-try:
-    csvFile = open(csvFileName + ".csv", "w")
-except IOError:
-    print("ERROR: opening the file " + csvFileName)
-    exit(-1)
+
+# open output data files
+csvProcessTraceTableFile = ScheduleUtilities.open_output_file("process_trace_table", "csv")
+csvStatsTableFile = ScheduleUtilities.open_output_file("statistics_table", "csv")
 
 # write the csv header
-machine.csv_write_header(csvFile)
+machine.csv_process_trace_table_write_header(csvProcessTraceTableFile)
+machine.csv_statistics_table_write_header(csvStatsTableFile)
+
+#
+# start the simulation
+#
 
 # print machine initial state of machine
 print("Initial machine status:")
@@ -56,11 +60,14 @@ while machine.process_all():
     # print status of the machine
     print(machine)
 
-    # write a line to the csv file
-    machine.csv_write(csvFile)
+    # write a status line to the csv file
+    machine.csv_process_trace_table_write(csvProcessTraceTableFile)
     
     # calculate statistics
     machine.calculate_statistics()
+
+    # write statistics
+    machine.csv_statistics_table_write(csvStatsTableFile)
     
     # process stage2 io
     machine.process_io_stage2()
@@ -72,11 +79,18 @@ while machine.process_all():
 print("Final machine status:")
 print(machine)
 
+# save the final machine status line to the csv file
+machine.csv_process_trace_table_write(csvProcessTraceTableFile)
+
 # print the statistics
 machine.print_statistics()
 
+# save the final statistics
+machine.csv_statistics_table_write(csvStatsTableFile)
+
 # close the file
-csvFile.close()
+csvProcessTraceTableFile.close()
+csvStatsTableFile.close()
 
 
 

@@ -11,6 +11,9 @@ class Machine:
 
         self.time = 0
 
+        # a process table
+        self.processTable = []
+
         # cpu is a list of processes of size numCores (each representing a core on the cpu)
         self.numCores = numCores
         self.cpu = [None] * numCores
@@ -28,13 +31,25 @@ class Machine:
         # amount of time the cpu was used
         self.cpuTimeUsed = 0
 
+        # statistics totals and running performance values
+        self.statsCPUUtilization = 0
+        self.statsThroughput = 0
+        self.statsTurnAroundTime = 0
+        self.statsWaitTime = 0
+        self.statsResponseTime = 0
+
     def add(self, process):
         """
         Adds a process to the machine
         :param process: the process to add
         :return: None
         """
+
+        # add the process to the new queue
         self.new.append(process)
+
+        # add the process to the process table
+        self.processTable.append(process)
 
     def __str_queue(self, qname, q):
         """
@@ -632,7 +647,7 @@ class Machine:
 
         print("---------------------------------------------")
 
-    def csv_write_header(self, csvFile):
+    def csv_process_trace_table_write_header(self, csvFile):
         """
         write a header to the csv file
         :return:
@@ -663,7 +678,7 @@ class Machine:
 
         csvFile.write(s)
 
-    def csv_write(self, csvFile):
+    def csv_process_trace_table_write(self, csvFile):
         """
         write a line to the csv file
         :return:
@@ -728,5 +743,89 @@ class Machine:
             s += self.exit[i].name + "\n"
         else:
             s += "\n"
+
+        csvFile.write(s)
+
+    def csv_statistics_table_write_header(self, csvFile):
+        """
+        write a header to the csv file
+        :return:
+        """
+
+        s = ""
+
+        s += "Time,"
+
+        s += "CPU Utilization,"
+
+        s += "Throughput,"
+
+        s += "Average Turn Around Time,"
+
+        s += "Average Wait Time,"
+
+        s += "Average Response Time Time\n"
+
+        csvFile.write(s)
+
+    def csv_statistics_table_write(self, csvFile):
+        """
+        write a line to the csv file
+        :return:
+        """
+
+        if self.time == 0:
+            return None
+
+        s = ""
+
+        s += str(self.time) + ","
+
+        # CPU utilization
+        util = (self.cpuTimeUsed / self.time) * 100
+        s += str("%.1f" % util) + "%" + ","
+
+        # Throughput
+        n = self.number_of_processes()
+        throughput = n / self.time
+        s += str("%.4f" % throughput) + ","
+
+        # create a sorted exit list
+        sortedExit = list()
+        for p in self.exit:
+            sortedExit.append(p)
+
+        # sort the list based on the process ID
+        sortedExit.sort(key=lambda x: x.id)
+
+        # Turn Around Time
+        total = 0
+        for p in sortedExit:
+            # calculate turn around time time
+            turnAroundTime = p.statsExitQueueTimestamp - p.statsFirstTimeInReadyQueueTimestamp
+            total += turnAroundTime
+
+        average = total / n
+        s += ("%.2f" % average) + ","
+
+        # Wait Time
+        total = 0
+        for p in sortedExit:
+            # calculate wait time
+            waitTime = p.statsTotalTimeInReadyQueue
+            total += waitTime
+
+        average = total / n
+        s += ("%.2f" % average) + ","
+
+        # Response Time
+        total = 0
+        for p in sortedExit:
+            # calculate response time
+            responseTime = p.statsFirstTimeOnCPUTimestamp - p.startTime
+            total += responseTime
+
+        average = total / n
+        s += ("%.2f" % average) + "\n"
 
         csvFile.write(s)
