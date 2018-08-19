@@ -11,6 +11,9 @@ class Machine:
 
         self.time = 0
 
+        # a process table
+        self.processTable = []
+
         # cpu is a list of processes of size numCores (each representing a core on the cpu)
         self.numCores = numCores
         self.cpu = [None] * numCores
@@ -28,13 +31,25 @@ class Machine:
         # amount of time the cpu was used
         self.cpuTimeUsed = 0
 
+        # statistics totals and running performance values
+        self.statsCPUUtilization = 0
+        self.statsThroughput = 0
+        self.statsTurnAroundTime = 0
+        self.statsWaitTime = 0
+        self.statsResponseTime = 0
+
     def add(self, process):
         """
         Adds a process to the machine
         :param process: the process to add
         :return: None
         """
+
+        # add the process to the new queue
         self.new.append(process)
+
+        # add the process to the process table
+        self.processTable.append(process)
 
     def __str_queue(self, qname, q):
         """
@@ -284,9 +299,6 @@ class Machine:
                 # the process on the cpu for more processing
                 self.cpu[availableCoreIndex].bursts[0][1] = self.cpu[availableCoreIndex].bursts[0][1] - 1
 
-
-
-
     def __process_cpu(self):
         """
         evaluates and handles processes in the cpu, moving them to appropriate queues
@@ -308,6 +320,7 @@ class Machine:
             if p is not None:
 
                 # get the first burst
+
                 burst = p.bursts[0]
 
                 # the cpu-burst is done when there is no more time left in the burst value
@@ -511,7 +524,7 @@ class Machine:
         if self.__cpu_has_a_core_busy():
             self.cpuTimeUsed += 1
 
-        # for each process running on a core if first time on cpu, set timestamp
+        # for each process if first time in ready queue, set timestamp
         for p in self.ready:
             if p is not None:
                 if p.statsFirstTimeInReadyQueue:
@@ -520,6 +533,21 @@ class Machine:
                     else:
                         p.statsFirstTimeInReadyQueueTimestamp = self.time
                     p.statsFirstTimeInReadyQueue = False
+
+        # for each process if in ready queue, increase total time in ready queue by 1
+        for p in self.ready:
+            if p is not None:
+                p.statsTotalTimeInReadyQueue += 1
+
+        # for each process if first time on CPU, set timestamp
+        for p in self.cpu:
+            if p is not None:
+                if p.statsFirstTimeOnCPU:
+                    if p.startTime == 0:
+                        p.statsFirstTimeOnCPUTimestamp = 0
+                    else:
+                        p.statsFirstTimeOnCPUTimestamp = self.time
+                    p.statsFirstTimeOnCPU = False
 
     def print_statistics(self):
         """
@@ -547,9 +575,17 @@ class Machine:
         print("\tThroughput = " + str("%.4f" % throughput))
         print("")
 
+        # create a sorted exit list
+        sortedExit = list()
+        for p in self.exit:
+            sortedExit.append(p)
+
+        # sort the list based on the process ID
+        sortedExit.sort(key=lambda x: x.id)
+
         print("Turn Around Time:")
         total = 0
-        for p in self.exit:
+        for p in sortedExit:
 
             s = "\tTurn Around Time of process "
             s += "id #: " + str(p.id)
@@ -570,7 +606,7 @@ class Machine:
 
         print("Wait Time:")
         total = 0
-        for p in self.exit:
+        for p in sortedExit:
 
             s = "\tWait Time of process "
             s += "id #: " + str(p.id)
@@ -578,7 +614,7 @@ class Machine:
             s += " = "
             
             # calculate wait time
-            waitTime = 0
+            waitTime = p.statsTotalTimeInReadyQueue
             s += str(waitTime)
             
             print(s)
@@ -591,7 +627,7 @@ class Machine:
 
         print("Response Time:")
         total = 0
-        for p in self.exit:
+        for p in sortedExit:
 
             s = "\tResponse Time of process "
             s += "id #: " + str(p.id)
@@ -599,7 +635,7 @@ class Machine:
             s += " = "
             
             # calculate response time
-            responseTime = 0
+            responseTime = p.statsFirstTimeOnCPUTimestamp - p.startTime
             s += str(responseTime)
             
             print(s)
@@ -611,7 +647,7 @@ class Machine:
 
         print("---------------------------------------------")
 
-    def csv_write_header(self, csvFile):
+    def csv_process_trace_table_write_header(self, csvFile):
         """
         write a header to the csv file
         :return:
@@ -642,7 +678,7 @@ class Machine:
 
         csvFile.write(s)
 
-    def csv_write(self, csvFile):
+    def csv_process_trace_table_write(self, csvFile):
         """
         write a line to the csv file
         :return:
@@ -707,5 +743,89 @@ class Machine:
             s += self.exit[i].name + "\n"
         else:
             s += "\n"
+
+        csvFile.write(s)
+
+    def csv_statistics_table_write_header(self, csvFile):
+        """
+        write a header to the csv file
+        :return:
+        """
+
+        s = ""
+
+        s += "Time,"
+
+        s += "CPU Utilization,"
+
+        s += "Throughput,"
+
+        s += "Average Turn Around Time,"
+
+        s += "Average Wait Time,"
+
+        s += "Average Response Time Time\n"
+
+        csvFile.write(s)
+
+    def csv_statistics_table_write(self, csvFile):
+        """
+        write a line to the csv file
+        :return:
+        """
+
+        if self.time == 0:
+            return None
+
+        s = ""
+
+        s += str(self.time) + ","
+
+        # CPU utilization
+        util = (self.cpuTimeUsed / self.time) * 100
+        s += str("%.1f" % util) + "%" + ","
+
+        # Throughput
+        n = self.number_of_processes()
+        throughput = n / self.time
+        s += str("%.4f" % throughput) + ","
+
+        # create a sorted exit list
+        sortedExit = list()
+        for p in self.exit:
+            sortedExit.append(p)
+
+        # sort the list based on the process ID
+        sortedExit.sort(key=lambda x: x.id)
+
+        # Turn Around Time
+        total = 0
+        for p in sortedExit:
+            # calculate turn around time time
+            turnAroundTime = p.statsExitQueueTimestamp - p.statsFirstTimeInReadyQueueTimestamp
+            total += turnAroundTime
+
+        average = total / n
+        s += ("%.2f" % average) + ","
+
+        # Wait Time
+        total = 0
+        for p in sortedExit:
+            # calculate wait time
+            waitTime = p.statsTotalTimeInReadyQueue
+            total += waitTime
+
+        average = total / n
+        s += ("%.2f" % average) + ","
+
+        # Response Time
+        total = 0
+        for p in sortedExit:
+            # calculate response time
+            responseTime = p.statsFirstTimeOnCPUTimestamp - p.startTime
+            total += responseTime
+
+        average = total / n
+        s += ("%.2f" % average) + "\n"
 
         csvFile.write(s)
