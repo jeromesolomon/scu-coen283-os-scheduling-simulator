@@ -29,8 +29,8 @@ machine.add(process)
 #
 
 numCores = 1
-machine = MachineFCFS.MachineFCFS(numCores)
-# machine = MachineRoundRobin.MachineRoundRobin(numCores, 2)
+# machine = MachineFCFS.MachineFCFS(numCores)
+machine = MachineRoundRobin.MachineRoundRobin(numCores, 2)
 
 # runs with lecture scheduling data
 ScheduleUtilities.create_lecture_example(machine)
@@ -84,9 +84,6 @@ while machine.process_all(machine.preempt_cpu):
 # print the final machine status
 print("Final machine status:")
 print(machine)
-
-# save the final machine status line to the csv file
-machine.csv_process_trace_table_write(csvProcessTraceTableFile)
 
 # print the statistics
 machine.print_statistics()
