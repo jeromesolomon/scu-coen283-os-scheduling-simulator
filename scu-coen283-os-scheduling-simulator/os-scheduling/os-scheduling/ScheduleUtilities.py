@@ -9,7 +9,7 @@ Utility functions for schedule toolset
 """
 
 
-def create_lecture_example(numCores=1):
+def create_lecture_example(machine):
     """
     Creates the example of four processes from Professor Amr Elkady's lecture
     :return: returns a machine with the lecture example processes
@@ -18,8 +18,6 @@ def create_lecture_example(numCores=1):
     #
     # Professor Amr Elkady's class lecture example
     #
-
-    machine = Machine.Machine(numCores)
 
     # process A
     processA = Process.Process("A", 0)
@@ -64,9 +62,7 @@ def create_lecture_example(numCores=1):
     return machine
 
 
-def create_multi_core_test():
-
-    machine = Machine.Machine(4)
+def create_multi_core_test(machine):
 
     # process A
     processA = Process.Process("A", 0)
@@ -134,9 +130,7 @@ def add_test_processes(m):
     m.add(p)
 
 
-def create_single_process_test():
-
-    machine = Machine.Machine(1)
+def create_single_process_test(machine):
 
     p = Process.Process("Single-Process", 0)
 

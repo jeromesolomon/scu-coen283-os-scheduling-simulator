@@ -1,11 +1,15 @@
 from collections import deque
 import Process
 
-class Machine:
 
-    def __init__(self, numCores = 1):
+class Machine:
+    """
+    Base machine class implement FCFS scheduling
+    """
+
+    def __init__(self, numCores=1):
         """
-        Initializes a machine object
+        initializes a machine object
         :param numCores: number of cores in the CPU
         """
 
@@ -299,10 +303,21 @@ class Machine:
                 # the process on the cpu for more processing
                 self.cpu[availableCoreIndex].bursts[0][1] = self.cpu[availableCoreIndex].bursts[0][1] - 1
 
-    def __process_cpu(self):
+    def preempt_cpu(self, process, coreIndex):
+        """
+        returns false for FCFS scheduling algorithm, since FCFS is not-preemptive
+        :param process: the process
+        :param coreIndex: the core index
+        :return: false
+        """
+
+        return False
+
+    def __process_cpu(self, preempt_function):
         """
         evaluates and handles processes in the cpu, moving them to appropriate queues
         when they are done
+        :param preempt_function: the preemption function (preempts the cpu given a process and a core index)
         :return: None
         """
 
@@ -338,6 +353,7 @@ class Machine:
                         self.__reprocess_ready_queue(i)
 
                     else:
+
                         # if next burst is io, move the process to the blocked queue, and process the ready queue
                         # so another process can take the available core
                         if p.bursts[0][0] == "io":
@@ -346,9 +362,18 @@ class Machine:
                             self.__reprocess_ready_queue(i)
 
                 else:
+
                     # if burst is not done, decrease the cpu-burst value by 1 and leave
                     # the process on the cpu for more processing
                     p.bursts[0][1] = p.bursts[0][1] - 1
+
+                    # check if process should be preempted
+                    # if preempted and the ready queue has other processes to put on the CPU, then
+                    # put the current process on to the ready queue
+                    if preempt_function(p, i) and (len(self.ready) > 0):
+                        self.ready.append(p)
+                        self.cpu[i] = None
+                        self.__reprocess_ready_queue(i)
 
             i += 1
 
@@ -456,9 +481,10 @@ class Machine:
                 p.statsExitQueueTimestamp = self.time
                 p.statsFirstTimeInExitQueue = False
 
-    def process_all(self):
+    def process_all(self, preempt_function):
         """
         handles the process queues, cpu, and io devices and moving processes around
+        :param preempt_function: function that returns true or false to preempt the cpu
         :return: returns None
         """
 
@@ -486,7 +512,7 @@ class Machine:
         # if process is done on any of the CPU cores and has io-burst next, move them to blocked queue
         # if process is done on any of the CPU cores and has cpu-burst next, leave it in the CPU
         # if process is done and does not have any more bursts, move it to the exit queue
-        self.__process_cpu()
+        self.__process_cpu(preempt_function)
 
         #
         # handle the blockedQ
