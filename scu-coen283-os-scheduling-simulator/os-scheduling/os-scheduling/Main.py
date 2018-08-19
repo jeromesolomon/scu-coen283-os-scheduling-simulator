@@ -14,7 +14,8 @@ process.set_by_stats(1, 35, 0, 0, 0)  # makes a process with 1 burst of length 3
 machine.add(process)
 
 process = Process.Process("B", 5)
-process.set_by_stats(1, 35, 0, 0, 0)  # makes a process with 1 burst of length 35, no io, enters 5 time units after previous process.
+# makes a process with 1 burst of length 35, no io, enters 5 time units after previous process.
+process.set_by_stats(1, 35, 0, 0, 0)  
 machine.add(process)
 """
 
@@ -34,6 +35,7 @@ machine = ScheduleUtilities.create_lecture_example(1)
 
 # open a csv file for saving & viewing the simulation in excel
 csvFileName = "simulation_output"
+csvFile = None
 try:
     csvFile = open(csvFileName + ".csv", "w")
 except IOError:

@@ -39,9 +39,8 @@ class Process:
         self.statsTotalTimeInReadyQueue = 0
 
         # response time
-        self.statsTotalTimeInReadyQueueForFirstTime = 0
-
-
+        self.statsFirstTimeOnCPU = True
+        self.statsFirstTimeOnCPUTimestamp = 0
 
     def set_by_stats(self, numBursts, burstMean, burstSD, ioMean, ioSD):
         """
@@ -67,18 +66,18 @@ class Process:
         :return: None
         """
         if cpuBurst > 0:
-        	b = ["cpu", cpuBurst]
-        	self.bursts.append(b)
+            b = ["cpu", cpuBurst]
+            self.bursts.append(b)
 
     def add_io_burst(self, ioBurst):
         """
         Adds a IO burst to the process
-        :param cpuBurst: amoount of time for cpu burst
+        :param ioBurst: amount of time for cpu burst
         :return: None
         """
         if ioBurst > 0:
-        	b = ["io", ioBurst]
-        	self.bursts.append(b)
+            b = ["io", ioBurst]
+            self.bursts.append(b)
 
     def __str__(self):
 

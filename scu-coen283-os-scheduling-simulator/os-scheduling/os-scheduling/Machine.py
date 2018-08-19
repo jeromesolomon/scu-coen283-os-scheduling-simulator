@@ -509,7 +509,7 @@ class Machine:
         if self.__cpu_has_a_core_busy():
             self.cpuTimeUsed += 1
 
-        # for each process running on a core if first time on cpu, set timestamp
+        # for each process if first time in ready queue, set timestamp
         for p in self.ready:
             if p is not None:
                 if p.statsFirstTimeInReadyQueue:
@@ -518,6 +518,21 @@ class Machine:
                     else:
                         p.statsFirstTimeInReadyQueueTimestamp = self.time
                     p.statsFirstTimeInReadyQueue = False
+
+        # for each process if in ready queue, increase total time in ready queue by 1
+        for p in self.ready:
+            if p is not None:
+                p.statsTotalTimeInReadyQueue += 1
+
+        # for each process if first time on CPU, set timestamp
+        for p in self.cpu:
+            if p is not None:
+                if p.statsFirstTimeOnCPU:
+                    if p.startTime == 0:
+                        p.statsFirstTimeOnCPUTimestamp = 0
+                    else:
+                        p.statsFirstTimeOnCPUTimestamp = self.time
+                    p.statsFirstTimeOnCPU = False
 
     def print_statistics(self):
         """
@@ -545,9 +560,17 @@ class Machine:
         print("\tThroughput = " + str("%.4f" % throughput))
         print("")
 
+        # create a sorted exit list
+        sortedExit = list()
+        for p in self.exit:
+            sortedExit.append(p)
+
+        # sort the list based on the process ID
+        sortedExit.sort(key=lambda x: x.id)
+
         print("Turn Around Time:")
         total = 0
-        for p in self.exit:
+        for p in sortedExit:
 
             s = "\tTurn Around Time of process "
             s += "id #: " + str(p.id)
@@ -568,7 +591,7 @@ class Machine:
 
         print("Wait Time:")
         total = 0
-        for p in self.exit:
+        for p in sortedExit:
 
             s = "\tWait Time of process "
             s += "id #: " + str(p.id)
@@ -576,7 +599,7 @@ class Machine:
             s += " = "
             
             # calculate wait time
-            waitTime = 0
+            waitTime = p.statsTotalTimeInReadyQueue
             s += str(waitTime)
             
             print(s)
@@ -589,7 +612,7 @@ class Machine:
 
         print("Response Time:")
         total = 0
-        for p in self.exit:
+        for p in sortedExit:
 
             s = "\tResponse Time of process "
             s += "id #: " + str(p.id)
@@ -597,7 +620,7 @@ class Machine:
             s += " = "
             
             # calculate response time
-            responseTime = 0
+            responseTime = p.statsFirstTimeOnCPUTimestamp - p.startTime
             s += str(responseTime)
             
             print(s)
