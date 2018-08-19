@@ -30,7 +30,7 @@ machine.add(process)
 
 numCores = 1
 # machine = MachineFCFS.MachineFCFS(numCores)
-machine = MachineRoundRobin.MachineRoundRobin(numCores, 2)
+machine = MachineRoundRobin.MachineRoundRobin(numCores, 3)
 
 # runs with lecture scheduling data
 ScheduleUtilities.create_lecture_example(machine)
@@ -61,7 +61,7 @@ print(machine)
  
 # run the machine to completion
 print("Running the simulation:")
-while machine.process_all(machine.preempt_cpu):
+while machine.process_all():
 
     # print status of the machine
     print(machine)

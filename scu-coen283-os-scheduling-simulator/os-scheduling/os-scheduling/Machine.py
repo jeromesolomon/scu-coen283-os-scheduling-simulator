@@ -219,7 +219,7 @@ class Machine:
 
         return aCoreIsBusy
 
-    def __process_new_queue(self):
+    def process_new_queue(self):
         """
         evaluates and advances the new queue
         :return: None
@@ -242,7 +242,7 @@ class Machine:
         # put in processes not moved to the ready q back in to the new q
         self.new = temp
 
-    def __process_ready_queue(self):
+    def process_ready_queue(self):
         """
         evaluates and advances the ready queue
         :return: None
@@ -279,7 +279,7 @@ class Machine:
         # put that processes that were not moved to the cpu or blocked q back in to the ready q
         self.ready = temp
 
-    def __reprocess_ready_queue(self, availableCoreIndex):
+    def reprocess_ready_queue(self, availableCoreIndex):
         """
         re-processes the ready queue for the cases that a core was made available.  Also, decrements
         the cpu for the process appropriately
@@ -287,7 +287,7 @@ class Machine:
         """
 
         # re-process the ready queue
-        self.__process_ready_queue()
+        self.process_ready_queue()
 
         # if the core that was made available has a process decrement it's cpu-burst by 1
         # since it will be on the cpu
@@ -303,21 +303,10 @@ class Machine:
                 # the process on the cpu for more processing
                 self.cpu[availableCoreIndex].bursts[0][1] = self.cpu[availableCoreIndex].bursts[0][1] - 1
 
-    def preempt_cpu(self, process, coreIndex):
-        """
-        returns false for FCFS scheduling algorithm, since FCFS is not-preemptive
-        :param process: the process
-        :param coreIndex: the core index
-        :return: false
-        """
-
-        return False
-
-    def __process_cpu(self, preempt_function):
+    def process_cpu(self):
         """
         evaluates and handles processes in the cpu, moving them to appropriate queues
         when they are done
-        :param preempt_function: the preemption function (preempts the cpu given a process and a core index)
         :return: None
         """
 
@@ -329,6 +318,7 @@ class Machine:
 
         i = 0
         while i < len(self.cpu):
+
             p = self.cpu[i]
 
             # if this core has a process
@@ -348,18 +338,20 @@ class Machine:
                     # and free up this cpu core.  process ready queue so another process may be able to
                     # take the core which was made available.
                     if len(p.bursts) == 0:
+                        p.timeOnCPUCurrentBurst = 0  # reset time on current burst
                         self.exit.append(p)
                         self.cpu[i] = None
-                        self.__reprocess_ready_queue(i)
+                        self.reprocess_ready_queue(i)
 
                     else:
 
                         # if next burst is io, move the process to the blocked queue, and process the ready queue
                         # so another process can take the available core
                         if p.bursts[0][0] == "io":
+                            p.timeOnCPUCurrentBurst = 0  # reset time on current burst
                             self.blocked.append(p)
                             self.cpu[i] = None
-                            self.__reprocess_ready_queue(i)
+                            self.reprocess_ready_queue(i)
 
                 else:
 
@@ -367,17 +359,12 @@ class Machine:
                     # the process on the cpu for more processing
                     p.bursts[0][1] = p.bursts[0][1] - 1
 
-                    # check if process should be preempted
-                    # if preempted and the ready queue has other processes to put on the CPU, then
-                    # put the current process on to the ready queue
-                    if preempt_function(p, i) and (len(self.ready) > 0):
-                        self.ready.append(p)
-                        self.cpu[i] = None
-                        self.__reprocess_ready_queue(i)
+                    # increase time on cpu value
+                    p.timeOnCPUCurrentBurst += 1
 
             i += 1
 
-    def __process_blocked_queue(self):
+    def process_blocked_queue(self):
         """
         evaluates and advances the blocked queue
         :return: None
@@ -393,7 +380,7 @@ class Machine:
             # put the process in to io
             self.io = p
 
-    def __process_io_stage1(self):
+    def process_io_stage1(self):
         """
         evaluates the io device
         :return: None
@@ -469,7 +456,7 @@ class Machine:
                                 # in the case that the next burst is io, do nothing.  This will leave the process in io
                                 # to complete any remaining io burst
                             
-    def __process_exit_queue(self):
+    def process_exit_queue(self):
         """
         handles the exit queue.  processes are simply left in place. But, statistics are gathered.
         :return: returns None
@@ -481,10 +468,9 @@ class Machine:
                 p.statsExitQueueTimestamp = self.time
                 p.statsFirstTimeInExitQueue = False
 
-    def process_all(self, preempt_function):
+    def process_all(self):
         """
         handles the process queues, cpu, and io devices and moving processes around
-        :param preempt_function: function that returns true or false to preempt the cpu
         :return: returns None
         """
 
@@ -495,7 +481,7 @@ class Machine:
         #
 
         # if any processes in newQ can proceed put them in the readyQ
-        self.__process_new_queue()
+        self.process_new_queue()
 
         #
         # handle the readyQ
@@ -503,7 +489,7 @@ class Machine:
 
         # if any process in readyQ has cpu-burst next, move it to any available core
         # if any process in readyQ has io-burst next, move it to the blocked queue
-        self.__process_ready_queue()
+        self.process_ready_queue()
 
         #
         # handle the CPU
@@ -512,14 +498,14 @@ class Machine:
         # if process is done on any of the CPU cores and has io-burst next, move them to blocked queue
         # if process is done on any of the CPU cores and has cpu-burst next, leave it in the CPU
         # if process is done and does not have any more bursts, move it to the exit queue
-        self.__process_cpu(preempt_function)
+        self.process_cpu()
 
         #
         # handle the blockedQ
         #
 
         # if a process in blocked queue and io is available, move it io
-        self.__process_blocked_queue()
+        self.process_blocked_queue()
 
         #
         # handle the io device
@@ -529,12 +515,12 @@ class Machine:
         # if IO is done and does not have any more bursts, move it to the exit queue
         # This is a two stage process.  Stage1 happens before printing data.  Stage2 occurs after printing and the
         # io is complete to move processes immediately to the ready queue
-        self.__process_io_stage1()
+        self.process_io_stage1()
         
         #
         # handles the exit queue
         #
-        self.__process_exit_queue()
+        self.process_exit_queue()
 
         # check if the machine has processes
         hasProcesses = self.has_processes()
