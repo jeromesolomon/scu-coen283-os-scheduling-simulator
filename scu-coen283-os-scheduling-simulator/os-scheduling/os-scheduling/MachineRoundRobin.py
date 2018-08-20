@@ -93,6 +93,7 @@ class MachineRoundRobin(Machine):
                     # if preempted and the ready queue has other processes to put on the CPU, then
                     # put the current process on to the ready queue
                     if self.__preempt_cpu(p, i) and (len(self.ready) > 0):
+                        p.timeOnCPUCurrentBurst = 0
                         self.ready.append(p)
                         self.cpu[i] = None
                         self.reprocess_ready_queue(i)

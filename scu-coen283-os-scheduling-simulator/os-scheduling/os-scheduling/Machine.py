@@ -248,36 +248,28 @@ class Machine:
         :return: None
         """
 
-        temp = deque()
-
         # if any process in readyQ has cpu-burst next, move it to any available core
         # if any process in readyQ has io-burst next, move it to the blocked queue
+        while self.__cpu_is_available() and (len(self.ready) > 0):
 
-        while len(self.ready) > 0:
+            # while there's a cpu available and there are processes in the ready queue
 
-            p = self.ready.popleft()
-
-            # if any process in readyQ has cpu-burst next, move it to any available core
-            # if remaining bursts are 0, the process is done and should be in the exit queue
+            p = self.ready[0]
 
             if len(p.bursts) == 0:
                 print("ERROR: moving process from ready queue directly to exit queue")
                 self.exit.append(p)
             else:
+
                 burst = p.bursts[0]
+
+                # if burst is a cpu-burst, move it to the cpu
                 if burst[0] == "cpu":
+                    self.__add_process_to_cpu(self.ready.popleft())
 
-                    # if cpu is available add process to cpu, otherwise leave it in the ready q
-                    if self.__cpu_is_available():
-                        self.__add_process_to_cpu(p)
-                    else:
-                        temp.append(p)
-                # if burst is an io-burst, move it to the blocked queue
+                # if burst is a io-burst, move it to the blocked queue
                 if burst[0] == "io":
-                    self.blocked.append(p)
-
-        # put that processes that were not moved to the cpu or blocked q back in to the ready q
-        self.ready = temp
+                    self.blocked.append(self.ready.popleft())
 
     def reprocess_ready_queue(self, availableCoreIndex):
         """
