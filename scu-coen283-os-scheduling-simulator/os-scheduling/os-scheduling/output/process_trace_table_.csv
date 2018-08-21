@@ -34,4 +34,3 @@ Time,New Queue,Ready Queue,CPU Core 0,Blocked Queue,IO,Exit Queue
 32,,D ,A,,,B C 
 33,,D ,A,,,B C 
 34,,,D,,,B C A 
-35,,,,,,B C A 
