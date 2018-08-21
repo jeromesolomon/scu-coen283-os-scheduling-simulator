@@ -1,0 +1,37 @@
+Time,New Queue,Ready Queue,CPU Core 0,Blocked Queue,IO,Exit Queue
+0,B C D ,,A,,,
+1,B C D ,,A,,,
+2,C D ,B ,A,,,
+3,D ,C A ,B,,,
+4,D ,C A ,B,,,
+5,D ,C A ,B,,,
+6,D ,A B ,C,,,
+7,,A B D ,C,,,
+8,,B D ,A,,C,
+9,,D C ,B,,A,
+10,,D C ,B,,A,
+11,,D C ,B,,A,
+12,,D C ,B,,A,
+13,,C A B ,D,,,
+14,,A B ,C,,D,
+15,,A B D ,C,,,
+16,,B D ,A,,,C 
+17,,B D ,A,,,C 
+18,,B D ,A,,,C 
+19,,B D ,A,,,C 
+20,,D A ,B,,,C 
+21,,A ,D,,B,C 
+22,,B ,A,,D,C 
+23,,D ,B,,A,C 
+24,,D ,B,,A,C 
+25,,D ,B,,A,C 
+26,,D ,B,,A,C 
+27,,A B ,D,,,C 
+28,,B ,A,,,C D 
+29,,B ,A,,,C D 
+30,,B ,A,,,C D 
+31,,B ,A,,,C D 
+32,,A ,B,,,C D 
+33,,A ,B,,,C D 
+34,,A ,B,,,C D 
+35,,,B,,,C D A 

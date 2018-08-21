@@ -46,6 +46,9 @@ class Process:
         self.statsFirstTimeOnCPU = True
         self.statsFirstTimeOnCPUTimestamp = 0
 
+        # preempt value
+        self.preempt = False
+
     def set_by_stats(self, numBursts, burstMean, burstSD, ioMean, ioSD):
         """
         Sets the process based on statistics and random values

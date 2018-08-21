@@ -31,6 +31,24 @@ class MachineRoundRobin(Machine):
 
         return preempt
 
+    def process_preemption(self):
+        """
+        move any preempted process to the ready q
+        :return:
+        """
+
+        # loop through all the cores looking for preempted processes
+        for i in range(0, len(self.cpu)):
+            p = self.cpu[i]
+            if (p is not None) and p.preempt:
+                self.ready.append(p)
+                self.cpu[i] = None
+                p.preempt = False
+
+
+
+
+
     def process_cpu(self):
         """
         evaluates and handles processes in the cpu, moving them to appropriate queues
@@ -94,9 +112,7 @@ class MachineRoundRobin(Machine):
                     # put the current process on to the ready queue
                     if self.__preempt_cpu(p, i) and (len(self.ready) > 0):
                         p.timeOnCPUCurrentBurst = 0
-                        self.ready.append(p)
-                        self.cpu[i] = None
-                        self.reprocess_ready_queue(i)
+                        p.preempt = True
 
             i += 1
 
@@ -114,6 +130,9 @@ class MachineRoundRobin(Machine):
 
         # if any processes in newQ can proceed put them in the readyQ
         self.process_new_queue()
+
+        # handle preemption
+        self.process_preemption()
 
         #
         # handle the readyQ

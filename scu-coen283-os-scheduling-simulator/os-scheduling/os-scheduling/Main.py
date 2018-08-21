@@ -6,6 +6,7 @@ import Machine
 import MachineFCFS
 import MachineRoundRobin
 import ScheduleUtilities
+import ScheduleTests
 
 
 #
@@ -29,18 +30,21 @@ machine.add(process)
 #
 
 numCores = 1
-machine = MachineFCFS.MachineFCFS(numCores)
-# machine = MachineRoundRobin.MachineRoundRobin(numCores, 3)
+# machine = MachineFCFS.MachineFCFS(numCores)
+machine = MachineRoundRobin.MachineRoundRobin(numCores, 3)
 
 # runs with lecture scheduling data
-ScheduleUtilities.create_lecture_example(machine)
+ScheduleTests.create_lecture_example(machine)
 
 # multi-core test
-# ScheduleUtilities.create_multi_core_test(machine)
-# ScheduleUtilities.add_test_processes(machine)
+# ScheduleTests.create_multi_core_test(machine)
+# ScheduleTests.add_test_processes(machine)
 
 # single process test
-# ScheduleUtilities.create_single_process_test(machine)
+# ScheduleTests.create_single_process_test(machine)
+
+# round robin test
+# ScheduleTests.create_round_robin_test(machine)
 
 
 # open output data files
