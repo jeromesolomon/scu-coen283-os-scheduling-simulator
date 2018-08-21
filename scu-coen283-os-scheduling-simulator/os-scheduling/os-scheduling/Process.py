@@ -26,6 +26,10 @@ class Process:
         # list of all bursts in the process
         self.bursts = deque()
 
+        # support for scheduling algorithms
+        # time on CPU for the current burst.  Used for round robin scheduling algorithm
+        self.timeOnCPUCurrentBurst = 0
+
         # statistics
         
         # turn around time stats & response time stats

@@ -2,7 +2,9 @@ import os
 import datetime
 
 import Process
-import Machine2
+import Machine
+import MachineFCFS
+import MachineRoundRobin
 import ScheduleUtilities
 
 
@@ -18,7 +20,7 @@ machine.add(process)
 
 process = Process.Process("B", 5)
 # makes a process with 1 burst of length 35, no io, enters 5 time units after previous process.
-process.set_by_stats(1, 35, 0, 0, 0)  
+process.set_by_stats(1, 35, 0, 0, 0)
 machine.add(process)
 """
 
@@ -26,15 +28,19 @@ machine.add(process)
 # Jerome's Test Cases
 #
 
+numCores = 1
+machine = MachineFCFS.MachineFCFS(numCores)
+# machine = MachineRoundRobin.MachineRoundRobin(numCores, 3)
+
 # runs with lecture scheduling data
-machine = ScheduleUtilities.create_lecture_example(1)
+ScheduleUtilities.create_lecture_example(machine)
 
 # multi-core test
-# machine = ScheduleUtilities.create_multi_core_test()
+# ScheduleUtilities.create_multi_core_test(machine)
 # ScheduleUtilities.add_test_processes(machine)
 
 # single process test
-# machine = ScheduleUtilities.create_single_process_test()
+# ScheduleUtilities.create_single_process_test(machine)
 
 
 # open output data files
@@ -52,7 +58,7 @@ machine.csv_statistics_table_write_header(csvStatsTableFile)
 # print machine initial state of machine
 print("Initial machine status:")
 print(machine)
- 
+
 # run the machine to completion
 print("Running the simulation:")
 while machine.process_all():
@@ -62,25 +68,22 @@ while machine.process_all():
 
     # write a status line to the csv file
     machine.csv_process_trace_table_write(csvProcessTraceTableFile)
-    
+
     # calculate statistics
     machine.calculate_statistics()
 
     # write statistics
     machine.csv_statistics_table_write(csvStatsTableFile)
-    
+
     # process stage2 io
     machine.process_io_stage2()
 
     # increase time
     machine.time += 1
-    
+
 # print the final machine status
 print("Final machine status:")
 print(machine)
-
-# save the final machine status line to the csv file
-machine.csv_process_trace_table_write(csvProcessTraceTableFile)
 
 # print the statistics
 machine.print_statistics()
@@ -91,6 +94,3 @@ machine.csv_statistics_table_write(csvStatsTableFile)
 # close the file
 csvProcessTraceTableFile.close()
 csvStatsTableFile.close()
-
-
-
