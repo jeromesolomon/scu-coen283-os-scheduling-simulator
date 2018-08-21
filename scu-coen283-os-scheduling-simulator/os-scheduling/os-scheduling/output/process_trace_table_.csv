@@ -26,11 +26,11 @@ Time,New Queue,Ready Queue,CPU Core 0,Blocked Queue,IO,Exit Queue
 24,,C D A ,B,,,
 25,,C D A ,B,,,
 26,,C D A ,B,,,
-27,,D A ,C,,,B
-28,,D A ,C,,,B
-29,,A ,D,,,B C
-30,,,A,,D,B C
-31,,D ,A,,,B C
-32,,D ,A,,,B C
-33,,D ,A,,,B C
-34,,,D,,,B C A
+27,,D A ,C,,,B 
+28,,D A ,C,,,B 
+29,,A ,D,,,B C 
+30,,,A,,D,B C 
+31,,D ,A,,,B C 
+32,,D ,A,,,B C 
+33,,D ,A,,,B C 
+34,,,D,,,B C A 
