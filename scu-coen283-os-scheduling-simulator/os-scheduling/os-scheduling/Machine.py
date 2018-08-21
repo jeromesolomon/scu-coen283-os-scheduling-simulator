@@ -55,7 +55,7 @@ class Machine:
         # add the process to the process table
         self.processTable.append(process)
 
-    def __str_queue(self, qname, q):
+    def str_queue(self, qname, q):
         """
         Private method used to print a queue neatly.
         :param qname: name of the queue
@@ -83,10 +83,10 @@ class Machine:
         mystring += "Number of cores: " + str(self.numCores) + "\n"
 
         # the new queues
-        mystring += self.__str_queue("New queue", self.new)
+        mystring += self.str_queue("New queue", self.new)
 
         # the ready queue
-        mystring += self.__str_queue("Ready queue", self.ready)
+        mystring += self.str_queue("Ready queue", self.ready)
         
         # the running/CPU processes
         mystring += "CPU:\n"
@@ -101,7 +101,7 @@ class Machine:
             coreNum += 1
 
         # the blocked queue
-        mystring += self.__str_queue("Blocked queue", self.blocked)
+        mystring += self.str_queue("Blocked queue", self.blocked)
 
         # the io device
         mystring += "IO:\n"
@@ -112,7 +112,7 @@ class Machine:
         mystring += "\n"
 
         # the exit queue
-        mystring += self.__str_queue("Exit queue", self.exit)
+        mystring += self.str_queue("Exit queue", self.exit)
 
         mystring += "---------------------------------------------" + "\n"
 

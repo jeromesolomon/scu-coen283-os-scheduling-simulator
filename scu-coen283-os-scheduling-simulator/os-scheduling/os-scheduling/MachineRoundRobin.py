@@ -45,10 +45,6 @@ class MachineRoundRobin(Machine):
                 self.cpu[i] = None
                 p.preempt = False
 
-
-
-
-
     def process_cpu(self):
         """
         evaluates and handles processes in the cpu, moving them to appropriate queues
@@ -177,3 +173,50 @@ class MachineRoundRobin(Machine):
         hasProcesses = self.has_processes()
 
         return hasProcesses
+
+    def __str__(self):
+        """
+        Returns a string suitable for printing the queue
+        :return:
+        """
+        mystring = "---------------------------------------------" + "\n"
+        mystring += "Time : " + str(self.time) + "\n"
+        mystring += "Number of cores: " + str(self.numCores) + "\n"
+
+        # the new queues
+        mystring += self.str_queue("New queue", self.new)
+
+        # the ready queue
+        mystring += self.str_queue("Ready queue", self.ready)
+
+        # the running/CPU processes
+        mystring += "CPU:\n"
+        coreNum = 0
+        for p in self.cpu:
+            mystring += "\tcore " + str(coreNum) + ": "
+            if p is None:
+                mystring += "<empty>"
+            else:
+                mystring += str(p)
+                mystring += " timeOnCPUCurrentBurst = " + str(p.timeOnCPUCurrentBurst)
+                mystring += " ,quantum = " + str(self.quantum)
+            mystring += "\n"
+            coreNum += 1
+
+        # the blocked queue
+        mystring += self.str_queue("Blocked queue", self.blocked)
+
+        # the io device
+        mystring += "IO:\n"
+        if self.io is None:
+            mystring += "\t<empty>"
+        else:
+            mystring += "\t" + str(self.io)
+        mystring += "\n"
+
+        # the exit queue
+        mystring += self.str_queue("Exit queue", self.exit)
+
+        mystring += "---------------------------------------------" + "\n"
+
+        return mystring
