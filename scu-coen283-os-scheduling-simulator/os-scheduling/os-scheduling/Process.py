@@ -10,7 +10,7 @@ class Process:
     # global process id variable (start process IDs at 100)
     globalProcessID = 100
 
-    def __init__(self, name, startTime):
+    def __init__(self, name, startTime, quantum=0):
         # this represents the process beginning at the new state
 
         # assign a unique process ID
@@ -55,6 +55,12 @@ class Process:
         # response time
         self.statsFirstTimeOnCPU = True
         self.statsFirstTimeOnCPUTimestamp = 0
+
+        # preempt boolean
+        self.preempt = False
+
+        # time quantum per process for scheduling algorithms that need it MFQ, RR, et cetera
+        self.quantum = quantum
 
     def set_by_stats(self, numBursts, burstMean, burstSD, ioMean, ioSD):
         """
