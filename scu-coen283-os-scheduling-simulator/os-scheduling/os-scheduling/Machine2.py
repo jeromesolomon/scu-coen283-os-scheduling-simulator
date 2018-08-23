@@ -297,7 +297,7 @@ class Machine:
         '''
 
         while self.__cpu_is_available() and self.ready.isNotEmpty():
-            #while there's a cpu available and there are processes in the ready queue
+            # while there's a cpu available and there are processes in the ready queue
             self.__add_process_to_cpu(self.ready.get())
 
     def __reprocess_ready_queue(self, availableCoreIndex):
@@ -369,11 +369,20 @@ class Machine:
                             self.blocked.append(p)
                             self.cpu[i] = None
                             self.__reprocess_ready_queue(i)
+                elif p.quantum == 0:
+                    # if the bursts didn't get zeroed out but the quantum did, set p's preempted flag to True
+                    # move the process back to the ready queue
+                    # and process ready queue to put another process on the core
+                    p.preempted = True
+                    self.ready.add(p)
+                    self.cpu[i] = None
+                    self.__reprocess_ready_queue(i)
 
                 else:
-                    # if burst is not done, decrease the cpu-burst value by 1 and leave
-                    # the process on the cpu for more processing
+                    # if burst is not done and quantum isn't finished, decrease the cpu-burst value by 1,
+                    # decrease the processes quantum by 1 and leave the process on the cpu for more processing
                     p.bursts[0][1] = p.bursts[0][1] - 1
+                    p.quantum -= 1
 
             i += 1
 
