@@ -38,30 +38,38 @@ ScheduleTests.create_lecture_example(machine, 3)
 
 # multi-core test
 # ScheduleTests.create_multi_core_test(machine)
-# ScheduleTests.add_test_processes(machine)
+# machine = ScheduleTests.add_test_processes(numCores)
 
 # single process test
-# ScheduleTests.create_single_process_test(machine)
+# machine = ScheduleTests.create_single_process_test(numCores)
 
 # round robin test
-# ScheduleTests.create_round_robin_test(machine)
+# machine = ScheduleTests.create_round_robin_test(numCores)
 
 
 # open output data files
 csvProcessTraceTableFile = ScheduleUtilities.open_output_file("process_trace_table", "csv")
 csvStatsTableFile = ScheduleUtilities.open_output_file("statistics_table", "csv")
+csvProcessInfoTableFile = ScheduleUtilities.open_output_file("process_info_table", "csv")
 
 # write the csv header
 machine.csv_process_trace_table_write_header(csvProcessTraceTableFile)
 machine.csv_statistics_table_write_header(csvStatsTableFile)
+#machine.csv_process_info_table_write_header(csvProcessInfoTableFile)
 
 #
 # start the simulation
 #
 
+# print process info table
+print(machine.str_process_info_table())
+
 # print machine initial state of machine
 print("Initial machine status:")
 print(machine)
+
+# write table info file
+#machine.csv_proces_info_table_write(csvProcessInfoTableFile)
 
 # run the machine to completion
 print("Running the simulation:")
@@ -98,3 +106,4 @@ machine.csv_statistics_table_write(csvStatsTableFile)
 # close the file
 csvProcessTraceTableFile.close()
 csvStatsTableFile.close()
+csvProcessInfoTableFile.close()
