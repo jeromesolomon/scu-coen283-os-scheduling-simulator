@@ -49,18 +49,14 @@ class MFQ:
         Returns True if structure is empty, False otherwise
         :return: True if structure is empty, False otherwise
         '''
-        for i in range(self.numLevels):
-            if len(self.myQueue[i]) > 0:
-                return True
-        return False
+        return self.size == 0
 
     def isNotEmpty(self):
         '''
         Returns False if structure is empty, True otherwise
         :return: False if structure is empty, True otherwise
         '''
-        return self.isEmpty() is False
-
+        return self.size > 0
 
     def toQueue(self):
         '''
@@ -71,4 +67,3 @@ class MFQ:
         for i in range(self.numLevels):
             result.extend(self.myQueue[i])
         return result
-
