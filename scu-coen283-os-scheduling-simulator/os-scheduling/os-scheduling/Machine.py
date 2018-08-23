@@ -1,11 +1,15 @@
 from collections import deque
 import Process
 
-class Machine:
 
-    def __init__(self, numCores = 1):
+class Machine:
+    """
+    Base machine class implement FCFS scheduling
+    """
+
+    def __init__(self, numCores=1):
         """
-        Initializes a machine object
+        initializes a machine object
         :param numCores: number of cores in the CPU
         """
 
@@ -215,7 +219,7 @@ class Machine:
 
         return aCoreIsBusy
 
-    def __process_new_queue(self):
+    def process_new_queue(self):
         """
         evaluates and advances the new queue
         :return: None
@@ -238,44 +242,36 @@ class Machine:
         # put in processes not moved to the ready q back in to the new q
         self.new = temp
 
-    def __process_ready_queue(self):
+    def process_ready_queue(self):
         """
         evaluates and advances the ready queue
         :return: None
         """
 
-        temp = deque()
-
         # if any process in readyQ has cpu-burst next, move it to any available core
         # if any process in readyQ has io-burst next, move it to the blocked queue
+        while self.__cpu_is_available() and (len(self.ready) > 0):
 
-        while len(self.ready) > 0:
+            # while there's a cpu available and there are processes in the ready queue
 
-            p = self.ready.popleft()
-
-            # if any process in readyQ has cpu-burst next, move it to any available core
-            # if remaining bursts are 0, the process is done and should be in the exit queue
+            p = self.ready[0]
 
             if len(p.bursts) == 0:
                 print("ERROR: moving process from ready queue directly to exit queue")
                 self.exit.append(p)
             else:
+
                 burst = p.bursts[0]
+
+                # if burst is a cpu-burst, move it to the cpu
                 if burst[0] == "cpu":
+                    self.__add_process_to_cpu(self.ready.popleft())
 
-                    # if cpu is available add process to cpu, otherwise leave it in the ready q
-                    if self.__cpu_is_available():
-                        self.__add_process_to_cpu(p)
-                    else:
-                        temp.append(p)
-                # if burst is an io-burst, move it to the blocked queue
+                # if burst is a io-burst, move it to the blocked queue
                 if burst[0] == "io":
-                    self.blocked.append(p)
+                    self.blocked.append(self.ready.popleft())
 
-        # put that processes that were not moved to the cpu or blocked q back in to the ready q
-        self.ready = temp
-
-    def __reprocess_ready_queue(self, availableCoreIndex):
+    def reprocess_ready_queue(self, availableCoreIndex):
         """
         re-processes the ready queue for the cases that a core was made available.  Also, decrements
         the cpu for the process appropriately
@@ -283,7 +279,7 @@ class Machine:
         """
 
         # re-process the ready queue
-        self.__process_ready_queue()
+        self.process_ready_queue()
 
         # if the core that was made available has a process decrement it's cpu-burst by 1
         # since it will be on the cpu
@@ -299,7 +295,7 @@ class Machine:
                 # the process on the cpu for more processing
                 self.cpu[availableCoreIndex].bursts[0][1] = self.cpu[availableCoreIndex].bursts[0][1] - 1
 
-    def __process_cpu(self):
+    def process_cpu(self):
         """
         evaluates and handles processes in the cpu, moving them to appropriate queues
         when they are done
@@ -314,6 +310,7 @@ class Machine:
 
         i = 0
         while i < len(self.cpu):
+
             p = self.cpu[i]
 
             # if this core has a process
@@ -333,26 +330,33 @@ class Machine:
                     # and free up this cpu core.  process ready queue so another process may be able to
                     # take the core which was made available.
                     if len(p.bursts) == 0:
+                        p.timeOnCPUCurrentBurst = 0  # reset time on current burst
                         self.exit.append(p)
                         self.cpu[i] = None
-                        self.__reprocess_ready_queue(i)
+                        self.reprocess_ready_queue(i)
 
                     else:
+
                         # if next burst is io, move the process to the blocked queue, and process the ready queue
                         # so another process can take the available core
                         if p.bursts[0][0] == "io":
+                            p.timeOnCPUCurrentBurst = 0  # reset time on current burst
                             self.blocked.append(p)
                             self.cpu[i] = None
-                            self.__reprocess_ready_queue(i)
+                            self.reprocess_ready_queue(i)
 
                 else:
+
                     # if burst is not done, decrease the cpu-burst value by 1 and leave
                     # the process on the cpu for more processing
                     p.bursts[0][1] = p.bursts[0][1] - 1
 
+                    # increase time on cpu value
+                    p.timeOnCPUCurrentBurst += 1
+
             i += 1
 
-    def __process_blocked_queue(self):
+    def process_blocked_queue(self):
         """
         evaluates and advances the blocked queue
         :return: None
@@ -368,7 +372,7 @@ class Machine:
             # put the process in to io
             self.io = p
 
-    def __process_io_stage1(self):
+    def process_io_stage1(self):
         """
         evaluates the io device
         :return: None
@@ -444,7 +448,7 @@ class Machine:
                                 # in the case that the next burst is io, do nothing.  This will leave the process in io
                                 # to complete any remaining io burst
                             
-    def __process_exit_queue(self):
+    def process_exit_queue(self):
         """
         handles the exit queue.  processes are simply left in place. But, statistics are gathered.
         :return: returns None
@@ -469,7 +473,7 @@ class Machine:
         #
 
         # if any processes in newQ can proceed put them in the readyQ
-        self.__process_new_queue()
+        self.process_new_queue()
 
         #
         # handle the readyQ
@@ -477,7 +481,7 @@ class Machine:
 
         # if any process in readyQ has cpu-burst next, move it to any available core
         # if any process in readyQ has io-burst next, move it to the blocked queue
-        self.__process_ready_queue()
+        self.process_ready_queue()
 
         #
         # handle the CPU
@@ -486,14 +490,14 @@ class Machine:
         # if process is done on any of the CPU cores and has io-burst next, move them to blocked queue
         # if process is done on any of the CPU cores and has cpu-burst next, leave it in the CPU
         # if process is done and does not have any more bursts, move it to the exit queue
-        self.__process_cpu()
+        self.process_cpu()
 
         #
         # handle the blockedQ
         #
 
         # if a process in blocked queue and io is available, move it io
-        self.__process_blocked_queue()
+        self.process_blocked_queue()
 
         #
         # handle the io device
@@ -503,12 +507,12 @@ class Machine:
         # if IO is done and does not have any more bursts, move it to the exit queue
         # This is a two stage process.  Stage1 happens before printing data.  Stage2 occurs after printing and the
         # io is complete to move processes immediately to the ready queue
-        self.__process_io_stage1()
+        self.process_io_stage1()
         
         #
         # handles the exit queue
         #
-        self.__process_exit_queue()
+        self.process_exit_queue()
 
         # check if the machine has processes
         hasProcesses = self.has_processes()
