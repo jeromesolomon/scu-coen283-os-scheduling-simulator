@@ -26,6 +26,16 @@ class Process:
         # list of all bursts in the process
         self.bursts = deque()
 
+        # allotted time quantum:
+        self.quantum = 0
+
+        # was the process preempted?:
+        self.preempted = False
+
+        # process priority (used for priority queue, multilevel [feedback] queue)
+        # priority always starts high unless otherwise noted.
+        self.priority = 0
+
         # support for scheduling algorithms
         # time on CPU for the current burst.  Used for round robin scheduling algorithm
         self.timeOnCPUCurrentBurst = 0
