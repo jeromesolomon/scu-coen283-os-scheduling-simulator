@@ -6,15 +6,13 @@ class MachineRoundRobin(Machine):
     Round robin scheduling algorithm
 
     """
-    def __init__(self, numCores, quantum):
+    def __init__(self, numCores):
         """
         initializes a machine object
         :param numCores: number of cores in the CPU
         """
 
         Machine.__init__(self, numCores)
-
-        self.quantum = quantum
 
     def __preempt_cpu(self, p, coreIndex):
         """
@@ -26,7 +24,7 @@ class MachineRoundRobin(Machine):
 
         preempt = False
 
-        if p.timeOnCPUCurrentBurst >= self.quantum:
+        if p.timeOnCPUCurrentBurst >= p.quantum:
             preempt = True
 
         return preempt
@@ -199,7 +197,7 @@ class MachineRoundRobin(Machine):
             else:
                 mystring += str(p)
                 mystring += " timeOnCPUCurrentBurst = " + str(p.timeOnCPUCurrentBurst)
-                mystring += " ,quantum = " + str(self.quantum)
+                mystring += " ,quantum = " + str(p.quantum)
             mystring += "\n"
             coreNum += 1
 

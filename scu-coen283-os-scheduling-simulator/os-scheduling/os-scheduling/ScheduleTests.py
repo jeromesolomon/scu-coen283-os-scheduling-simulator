@@ -144,7 +144,7 @@ def create_single_process_test(machine):
     return machine
 
 
-def create_round_robin_test(machine):
+def create_round_robin_test(machine, quantum):
     """
     Creates the example of four processes from Professor Amr Elkady's lecture
     :return: returns a machine with the lecture example processes
@@ -155,7 +155,7 @@ def create_round_robin_test(machine):
     #
 
     # process A
-    processA = Process.Process("A", 0)
+    processA = Process.Process("A", 0, quantum)
 
     processA.add_cpu_burst(4)
     processA.add_io_burst(4)
@@ -166,7 +166,7 @@ def create_round_robin_test(machine):
     machine.add(processA)
 
     # process B
-    processB = Process.Process("B", 2)
+    processB = Process.Process("B", 2, quantum)
 
     processB.add_cpu_burst(8)
     processB.add_io_burst(1)
