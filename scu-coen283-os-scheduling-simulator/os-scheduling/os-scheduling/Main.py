@@ -34,7 +34,7 @@ numCores = 1
 machine = MachineRoundRobin.MachineRoundRobin(numCores)
 
 # runs with lecture scheduling data
-ScheduleTests.create_lecture_example(machine)
+ScheduleTests.create_lecture_example(machine, 3)
 
 # multi-core test
 # ScheduleTests.create_multi_core_test(machine)

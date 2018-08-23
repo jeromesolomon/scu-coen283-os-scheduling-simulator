@@ -8,7 +8,7 @@ import Process
 Test functions for schedule toolset
 """
 
-def create_lecture_example(machine):
+def create_lecture_example(machine, quantum):
     """
     Creates the example of four processes from Professor Amr Elkady's lecture
     :return: returns a machine with the lecture example processes
@@ -18,8 +18,10 @@ def create_lecture_example(machine):
     # Professor Amr Elkady's class lecture example
     #
 
+    quantum = 3
+
     # process A
-    processA = Process.Process("A", 0)
+    processA = Process.Process("A", 0, quantum)
 
     processA.add_cpu_burst(4)
     processA.add_io_burst(4)
@@ -30,7 +32,7 @@ def create_lecture_example(machine):
     machine.add(processA)
 
     # process B
-    processB = Process.Process("B", 2)
+    processB = Process.Process("B", 2, quantum)
 
     processB.add_cpu_burst(8)
     processB.add_io_burst(1)
@@ -39,7 +41,7 @@ def create_lecture_example(machine):
     machine.add(processB)
 
     # process C
-    processC = Process.Process("C", 3)
+    processC = Process.Process("C", 3, quantum)
 
     processC.add_cpu_burst(2)
     processC.add_io_burst(1)
@@ -48,7 +50,7 @@ def create_lecture_example(machine):
     machine.add(processC)
 
     # process D
-    processD = Process.Process("D", 7)
+    processD = Process.Process("D", 7, quantum)
 
     processD.add_cpu_burst(1)
     processD.add_io_burst(1)

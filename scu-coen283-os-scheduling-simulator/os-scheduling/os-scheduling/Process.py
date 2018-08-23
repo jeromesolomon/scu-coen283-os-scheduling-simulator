@@ -10,7 +10,7 @@ class Process:
     # global process id variable (start process IDs at 100)
     globalProcessID = 100
 
-    def __init__(self, name, startTime, quantum=0):
+    def __init__(self, name, startTime, quantum):
         # this represents the process beginning at the new state
 
         # assign a unique process ID

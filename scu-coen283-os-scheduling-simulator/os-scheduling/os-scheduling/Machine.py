@@ -293,7 +293,9 @@ class Machine:
             if burst[1] > 0:
                 # if burst is not done, decrease the cpu-burst value by 1 and leave
                 # the process on the cpu for more processing
-                self.cpu[availableCoreIndex].bursts[0][1] = self.cpu[availableCoreIndex].bursts[0][1] - 1
+                self.cpu[availableCoreIndex].bursts[0][1] -= 1
+                # increase time on cpu by 1
+                self.cpu[availableCoreIndex].timeOnCPUCurrentBurst += 1
 
     def process_cpu(self):
         """
