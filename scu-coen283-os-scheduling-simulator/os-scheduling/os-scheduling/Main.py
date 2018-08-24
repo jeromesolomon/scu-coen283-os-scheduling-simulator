@@ -55,7 +55,6 @@ csvProcessInfoTableFile = ScheduleUtilities.open_output_file("process_info_table
 # write the csv header
 machine.csv_process_trace_table_write_header(csvProcessTraceTableFile)
 machine.csv_statistics_table_write_header(csvStatsTableFile)
-#machine.csv_process_info_table_write_header(csvProcessInfoTableFile)
 
 #
 # start the simulation
@@ -69,7 +68,7 @@ print("Initial machine status:")
 print(machine)
 
 # write table info file
-#machine.csv_proces_info_table_write(csvProcessInfoTableFile)
+machine.csv_process_info_table_write(csvProcessInfoTableFile)
 
 # run the machine to completion
 print("Running the simulation:")
