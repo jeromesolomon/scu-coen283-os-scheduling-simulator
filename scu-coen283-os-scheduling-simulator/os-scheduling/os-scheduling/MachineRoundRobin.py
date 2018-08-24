@@ -6,15 +6,13 @@ class MachineRoundRobin(Machine):
     Round robin scheduling algorithm
 
     """
-    def __init__(self, numCores, quantum):
+    def __init__(self, numCores):
         """
         initializes a machine object
         :param numCores: number of cores in the CPU
         """
 
         Machine.__init__(self, numCores)
-
-        self.quantum = quantum
 
     def __preempt_cpu(self, p, coreIndex):
         """
@@ -26,10 +24,24 @@ class MachineRoundRobin(Machine):
 
         preempt = False
 
-        if p.timeOnCPUCurrentBurst >= self.quantum:
+        if p.timeOnCPUCurrentBurst >= p.quantum:
             preempt = True
 
         return preempt
+
+    def process_preemption(self):
+        """
+        move any preempted process to the ready q
+        :return:
+        """
+
+        # loop through all the cores looking for preempted processes
+        for i in range(0, len(self.cpu)):
+            p = self.cpu[i]
+            if (p is not None) and p.preempt:
+                self.ready.append(p)
+                self.cpu[i] = None
+                p.preempt = False
 
     def process_cpu(self):
         """
@@ -94,9 +106,7 @@ class MachineRoundRobin(Machine):
                     # put the current process on to the ready queue
                     if self.__preempt_cpu(p, i) and (len(self.ready) > 0):
                         p.timeOnCPUCurrentBurst = 0
-                        self.ready.append(p)
-                        self.cpu[i] = None
-                        self.reprocess_ready_queue(i)
+                        p.preempt = True
 
             i += 1
 
@@ -114,6 +124,9 @@ class MachineRoundRobin(Machine):
 
         # if any processes in newQ can proceed put them in the readyQ
         self.process_new_queue()
+
+        # handle preemption
+        self.process_preemption()
 
         #
         # handle the readyQ
@@ -158,3 +171,50 @@ class MachineRoundRobin(Machine):
         hasProcesses = self.has_processes()
 
         return hasProcesses
+
+    def __str__(self):
+        """
+        Returns a string suitable for printing the queue
+        :return:
+        """
+        mystring = "---------------------------------------------" + "\n"
+        mystring += "Time : " + str(self.time) + "\n"
+        mystring += "Number of cores: " + str(self.numCores) + "\n"
+
+        # the new queues
+        mystring += self.str_queue("New queue", self.new)
+
+        # the ready queue
+        mystring += self.str_queue("Ready queue", self.ready)
+
+        # the running/CPU processes
+        mystring += "CPU:\n"
+        coreNum = 0
+        for p in self.cpu:
+            mystring += "\tcore " + str(coreNum) + ": "
+            if p is None:
+                mystring += "<empty>"
+            else:
+                mystring += str(p)
+                mystring += " timeOnCPUCurrentBurst = " + str(p.timeOnCPUCurrentBurst)
+                mystring += " ,quantum = " + str(p.quantum)
+            mystring += "\n"
+            coreNum += 1
+
+        # the blocked queue
+        mystring += self.str_queue("Blocked queue", self.blocked)
+
+        # the io device
+        mystring += "IO:\n"
+        if self.io is None:
+            mystring += "\t<empty>"
+        else:
+            mystring += "\t" + str(self.io)
+        mystring += "\n"
+
+        # the exit queue
+        mystring += self.str_queue("Exit queue", self.exit)
+
+        mystring += "---------------------------------------------" + "\n"
+
+        return mystring

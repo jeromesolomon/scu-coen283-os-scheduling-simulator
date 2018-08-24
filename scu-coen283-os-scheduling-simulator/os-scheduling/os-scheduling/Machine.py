@@ -16,7 +16,7 @@ class Machine:
         self.time = 0
 
         # a process table
-        self.processTable = []
+        self.processInfoTable = []
 
         # cpu is a list of processes of size numCores (each representing a core on the cpu)
         self.numCores = numCores
@@ -53,9 +53,9 @@ class Machine:
         self.new.append(process)
 
         # add the process to the process table
-        self.processTable.append(process)
+        self.processInfoTable.append(process)
 
-    def __str_queue(self, qname, q):
+    def str_queue(self, qname, q):
         """
         Private method used to print a queue neatly.
         :param qname: name of the queue
@@ -73,6 +73,59 @@ class Machine:
 
         return mystring
 
+    def str_process_info_table(self):
+        """
+        returns a string used to print the process info table
+        :return:
+        """
+
+        s = ""
+        s += "Process Information Table:" + "\n"
+        s += "---------------------------------------------"
+        s += "\n"
+
+        #
+        # construct the header
+        #
+
+        s += "Name\tID\tArrival Time"
+
+        # figure out maximum number of bursts
+        maxNumBursts = 0
+        for p in self.processInfoTable:
+            maxNumBursts = max(maxNumBursts, len(p.bursts))
+
+        s += "\t"
+        for i in range(0, maxNumBursts-1):
+            s += "Burst " + str(i) + " Type" + "\t"
+            s += "Burst " + str(i) + " Value" + "\t"
+
+        s += "Burst " + str(maxNumBursts-1) + " Type" + "\t"
+        s += "Burst " + str(maxNumBursts-1) + " Value" + "\n"
+
+        #
+        # construct the table
+        #
+
+        for p in self.processInfoTable:
+
+            s += p.name + "\t"
+            s += str(p.id) + "\t"
+            s += str(p.startTime) + "\t"
+
+            for b in p.bursts:
+                s += b[0] + "\t"
+                s += str(b[1]) + "\t"
+                s += "\t"
+            s += "\n"
+
+        s += "---------------------------------------------"
+        s += "\n"
+
+        s += ""
+
+        return s
+
     def __str__(self):
         """
         Returns a string suitable for printing the queue
@@ -83,10 +136,10 @@ class Machine:
         mystring += "Number of cores: " + str(self.numCores) + "\n"
 
         # the new queues
-        mystring += self.__str_queue("New queue", self.new)
+        mystring += self.str_queue("New queue", self.new)
 
         # the ready queue
-        mystring += self.__str_queue("Ready queue", self.ready)
+        mystring += self.str_queue("Ready queue", self.ready)
         
         # the running/CPU processes
         mystring += "CPU:\n"
@@ -101,7 +154,7 @@ class Machine:
             coreNum += 1
 
         # the blocked queue
-        mystring += self.__str_queue("Blocked queue", self.blocked)
+        mystring += self.str_queue("Blocked queue", self.blocked)
 
         # the io device
         mystring += "IO:\n"
@@ -112,7 +165,7 @@ class Machine:
         mystring += "\n"
 
         # the exit queue
-        mystring += self.__str_queue("Exit queue", self.exit)
+        mystring += self.str_queue("Exit queue", self.exit)
 
         mystring += "---------------------------------------------" + "\n"
 
@@ -171,7 +224,7 @@ class Machine:
 
         return total
 
-    def __add_process_to_cpu(self, p):
+    def add_process_to_cpu(self, p):
         """
         Adds a process to an available slot on the cpu
         :param p:
@@ -190,7 +243,7 @@ class Machine:
 
             i += 1
 
-    def __cpu_is_available(self):
+    def cpu_is_available(self):
         """
         Returns true if the cpu is empty
         :return:
@@ -250,7 +303,7 @@ class Machine:
 
         # if any process in readyQ has cpu-burst next, move it to any available core
         # if any process in readyQ has io-burst next, move it to the blocked queue
-        while self.__cpu_is_available() and (len(self.ready) > 0):
+        while self.cpu_is_available() and (len(self.ready) > 0):
 
             # while there's a cpu available and there are processes in the ready queue
 
@@ -265,7 +318,7 @@ class Machine:
 
                 # if burst is a cpu-burst, move it to the cpu
                 if burst[0] == "cpu":
-                    self.__add_process_to_cpu(self.ready.popleft())
+                    self.add_process_to_cpu(self.ready.popleft())
 
                 # if burst is a io-burst, move it to the blocked queue
                 if burst[0] == "io":
@@ -293,7 +346,9 @@ class Machine:
             if burst[1] > 0:
                 # if burst is not done, decrease the cpu-burst value by 1 and leave
                 # the process on the cpu for more processing
-                self.cpu[availableCoreIndex].bursts[0][1] = self.cpu[availableCoreIndex].bursts[0][1] - 1
+                self.cpu[availableCoreIndex].bursts[0][1] -= 1
+                # increase time on cpu by 1
+                self.cpu[availableCoreIndex].timeOnCPUCurrentBurst += 1
 
     def process_cpu(self):
         """
@@ -833,3 +888,57 @@ class Machine:
         s += ("%.2f" % average) + "\n"
 
         csvFile.write(s)
+
+    def csv_process_info_table_write(self, csvFile):
+        """
+        writes the process info to a csv file
+        :param csvFile:
+        :return:
+        """
+
+        s = ""
+
+        #
+        # construct the header
+        #
+
+        s += "Name,ID,Arrival Time,"
+
+        # figure out maximum number of burts
+        maxNumBursts = 0
+        for p in self.processInfoTable:
+            maxNumBursts = max(maxNumBursts, len(p.bursts))
+
+        s += "\t"
+        for i in range(0, maxNumBursts-1):
+            s += "Burst " + str(i) + " Type" + ","
+            s += "Burst " + str(i) + " Value" + ","
+
+        s += "Burst " + str(maxNumBursts-1) + " Type" + ","
+        s += "Burst " + str(maxNumBursts-1) + " Value" + "\n"
+
+        #
+        # construct the table
+        #
+
+        for p in self.processInfoTable:
+
+            s += p.name + ","
+            s += str(p.id) + ","
+            s += str(p.startTime) + ","
+
+            numBursts = len(p.bursts)
+            for i in range(0, numBursts - 1):
+                b = p.bursts[i]
+                s += b[0] + ","
+                s += str(b[1]) + ","
+
+            b = p.bursts[numBursts-1]
+            s += b[0] + ","
+            s += str(b[1]) + ","
+
+            s += "\n"
+
+        csvFile.write(s)
+
+

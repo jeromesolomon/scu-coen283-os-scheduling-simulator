@@ -5,7 +5,9 @@ import Process
 import Machine
 import MachineFCFS
 import MachineRoundRobin
+import MachineShortestProcessFirst
 import ScheduleUtilities
+import ScheduleTests
 
 
 #
@@ -29,23 +31,28 @@ machine.add(process)
 #
 
 numCores = 1
-machine = MachineFCFS.MachineFCFS(numCores)
-# machine = MachineRoundRobin.MachineRoundRobin(numCores, 3)
+# machine = MachineFCFS.MachineFCFS(numCores)
+# machine = MachineRoundRobin.MachineRoundRobin(numCores)
+machine = MachineShortestProcessFirst.MachineShortestProcessFirst(numCores)
 
 # runs with lecture scheduling data
-ScheduleUtilities.create_lecture_example(machine)
+ScheduleTests.create_lecture_example(machine, 3)
 
 # multi-core test
-# ScheduleUtilities.create_multi_core_test(machine)
-# ScheduleUtilities.add_test_processes(machine)
+# ScheduleTests.create_multi_core_test(machine)
+# machine = ScheduleTests.add_test_processes(numCores)
 
 # single process test
-# ScheduleUtilities.create_single_process_test(machine)
+# machine = ScheduleTests.create_single_process_test(numCores)
+
+# round robin test
+# machine = ScheduleTests.create_round_robin_test(numCores)
 
 
 # open output data files
 csvProcessTraceTableFile = ScheduleUtilities.open_output_file("process_trace_table", "csv")
 csvStatsTableFile = ScheduleUtilities.open_output_file("statistics_table", "csv")
+csvProcessInfoTableFile = ScheduleUtilities.open_output_file("process_info_table", "csv")
 
 # write the csv header
 machine.csv_process_trace_table_write_header(csvProcessTraceTableFile)
@@ -55,9 +62,15 @@ machine.csv_statistics_table_write_header(csvStatsTableFile)
 # start the simulation
 #
 
+# print process info table
+print(machine.str_process_info_table())
+
 # print machine initial state of machine
 print("Initial machine status:")
 print(machine)
+
+# write table info file
+machine.csv_process_info_table_write(csvProcessInfoTableFile)
 
 # run the machine to completion
 print("Running the simulation:")
@@ -94,3 +107,4 @@ machine.csv_statistics_table_write(csvStatsTableFile)
 # close the file
 csvProcessTraceTableFile.close()
 csvStatsTableFile.close()
+csvProcessInfoTableFile.close()
