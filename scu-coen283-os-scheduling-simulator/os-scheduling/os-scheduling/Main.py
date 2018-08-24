@@ -5,6 +5,7 @@ import Process
 import Machine
 import MachineFCFS
 import MachineRoundRobin
+import MachineShortestProcessFirst
 import ScheduleUtilities
 import ScheduleTests
 
@@ -31,7 +32,8 @@ machine.add(process)
 
 numCores = 1
 # machine = MachineFCFS.MachineFCFS(numCores)
-machine = MachineRoundRobin.MachineRoundRobin(numCores)
+# machine = MachineRoundRobin.MachineRoundRobin(numCores)
+machine = MachineShortestProcessFirst.MachineShortestProcessFirst(numCores)
 
 # runs with lecture scheduling data
 ScheduleTests.create_lecture_example(machine, 3)

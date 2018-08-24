@@ -224,7 +224,7 @@ class Machine:
 
         return total
 
-    def __add_process_to_cpu(self, p):
+    def add_process_to_cpu(self, p):
         """
         Adds a process to an available slot on the cpu
         :param p:
@@ -243,7 +243,7 @@ class Machine:
 
             i += 1
 
-    def __cpu_is_available(self):
+    def cpu_is_available(self):
         """
         Returns true if the cpu is empty
         :return:
@@ -303,7 +303,7 @@ class Machine:
 
         # if any process in readyQ has cpu-burst next, move it to any available core
         # if any process in readyQ has io-burst next, move it to the blocked queue
-        while self.__cpu_is_available() and (len(self.ready) > 0):
+        while self.cpu_is_available() and (len(self.ready) > 0):
 
             # while there's a cpu available and there are processes in the ready queue
 
@@ -318,7 +318,7 @@ class Machine:
 
                 # if burst is a cpu-burst, move it to the cpu
                 if burst[0] == "cpu":
-                    self.__add_process_to_cpu(self.ready.popleft())
+                    self.add_process_to_cpu(self.ready.popleft())
 
                 # if burst is a io-burst, move it to the blocked queue
                 if burst[0] == "io":
