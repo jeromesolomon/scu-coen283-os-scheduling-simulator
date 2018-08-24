@@ -1,8 +1,10 @@
 from collections import deque
 import FirstInFirstOut
 import Process
+import MFQ
+import RR
 
-class Machine:
+class Machine2:
 
     def __init__(self, numCores = 1):
         """
@@ -24,7 +26,7 @@ class Machine:
 
         # queue for os handling of processes
         self.new = deque()
-        self.ready = FirstInFirstOut.FIFO()
+        self.ready = RR.RR(3)
         self.blocked = deque()
         self.exit = deque()
 

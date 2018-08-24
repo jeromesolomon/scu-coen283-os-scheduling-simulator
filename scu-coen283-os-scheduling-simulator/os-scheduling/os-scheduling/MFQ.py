@@ -2,9 +2,10 @@ from collections import deque
 
 class MFQ:
 
-    def __init__(self, numLevels):
+    def __init__(self, numLevels, quanta):
         self.numLevels = numLevels
         self.myQueue = [deque()] * numLevels
+        self.quanta = quanta
         self.size = 0
 
     def add(self, item):
@@ -13,11 +14,14 @@ class MFQ:
         :param item: item to be added to queue
         :return:
         '''
-        
-        index = item.priority  # get the priority
+        # LOWER VALUES OF PRIORITY MEANS HIGHER PRIORITY!
 
+        index = item.priority  # get the priority
+        if item.preempted is True:
+            index = index + 1  # lower the priority if the item was preempted
         if index >= self.numLevels-1: # if priority is lower than the lowest priority queue, put it in the lowest priority
             item.priority = self.numLevels-1
+            item.quantum = self.quanta[self.numLevels-1]
             self.myQueue[self.numLevels-1].append(item)
         else:  # otherwise just put it in the right queue
             self.myQueue[index].append(item)

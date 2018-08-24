@@ -3,6 +3,7 @@ import datetime
 
 import Process
 import Machine
+import Machine2
 import MachineFCFS
 import MachineRoundRobin
 import ScheduleUtilities
@@ -31,7 +32,12 @@ machine.add(process)
 
 numCores = 1
 # machine = MachineFCFS.MachineFCFS(numCores)
-machine = MachineRoundRobin.MachineRoundRobin(numCores)
+# machine = MachineRoundRobin.MachineRoundRobin(numCores)
+machine = Machine2.Machine2(numCores)
+
+
+
+
 
 # runs with lecture scheduling data
 ScheduleTests.create_lecture_example(machine, 3)
