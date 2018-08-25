@@ -32,8 +32,8 @@ machine.add(process)
 
 numCores = 1
 # machine = MachineFCFS.MachineFCFS(numCores)
-# machine = MachineRoundRobin.MachineRoundRobin(numCores)
-machine = Machine2.Machine2(numCores)
+machine = MachineRoundRobin.MachineRoundRobin(numCores)
+#machine = Machine2.Machine2(numCores)
 
 
 

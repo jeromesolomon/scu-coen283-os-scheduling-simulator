@@ -1,7 +1,7 @@
-from Machine import Machine
+from Machine2 import Machine2
 
 
-class MachineRoundRobin(Machine):
+class MachineRoundRobin(Machine2):
     """
     Round robin scheduling algorithm
 
@@ -12,7 +12,7 @@ class MachineRoundRobin(Machine):
         :param numCores: number of cores in the CPU
         """
 
-        Machine.__init__(self, numCores)
+        Machine2.__init__(self, numCores)
 
     def __preempt_cpu(self, p, coreIndex):
         """
@@ -39,7 +39,7 @@ class MachineRoundRobin(Machine):
         for i in range(0, len(self.cpu)):
             p = self.cpu[i]
             if (p is not None) and p.preempt:
-                self.ready.append(p)
+                self.ready.add(p)
                 self.cpu[i] = None
                 p.preempt = False
 
@@ -104,7 +104,7 @@ class MachineRoundRobin(Machine):
                     # check if process should be preempted
                     # if preempted and the ready queue has other processes to put on the CPU, then
                     # put the current process on to the ready queue
-                    if self.__preempt_cpu(p, i) and (len(self.ready) > 0):
+                    if self.__preempt_cpu(p, i) and self.ready.size > 0:
                         p.timeOnCPUCurrentBurst = 0
                         p.preempt = True
 
@@ -185,7 +185,7 @@ class MachineRoundRobin(Machine):
         mystring += self.str_queue("New queue", self.new)
 
         # the ready queue
-        mystring += self.str_queue("Ready queue", self.ready)
+        mystring += self.str_queue("Ready queue", self.ready.toQueue())
 
         # the running/CPU processes
         mystring += "CPU:\n"

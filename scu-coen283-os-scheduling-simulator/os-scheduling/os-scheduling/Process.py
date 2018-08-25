@@ -106,6 +106,7 @@ class Process:
         result += " "
         result += "{"
         result += "name = " + str(self.name) + ", "
+        result += "quantum =" + str(self.quantum) + ", "
         result += "start time = " + str(self.startTime) + ", "
         result += "bursts = " + str(self.bursts)
         result += "}"
