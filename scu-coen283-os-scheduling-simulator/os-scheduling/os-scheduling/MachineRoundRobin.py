@@ -24,6 +24,14 @@ class MachineRoundRobin(Machine):
 
         preempt = False
 
+        # if the cpu-burst is done, do not preempt the process
+        if p is not None:
+            if len(p.bursts) > 0:
+                b = p.bursts[0]
+                if b[0] == "cpu" and b[1] == 0:
+                    preempt = False
+                    return preempt
+
         if p.timeOnCPUCurrentBurst >= p.quantum:
             preempt = True
 

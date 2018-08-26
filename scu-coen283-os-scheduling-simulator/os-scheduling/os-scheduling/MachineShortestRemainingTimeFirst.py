@@ -27,6 +27,14 @@ class MachineShortestRemainingTimeFirst(Machine):
         # if the process has less time remaining than a process on the ready queue
         cpuBurstTotal = self.__total_remaining_cpu_bursts(p)
 
+        # if the cpu-burst is done, do not preempt the process
+        if p is not None:
+            if len(p.bursts) > 0:
+                b = p.bursts[0]
+                if b[0] == "cpu" and b[1] == 0:
+                    preempt = False
+                    return preempt
+
         # find out if there is a process on the ready queue with a smaller remaining time
         for pReady in self.ready:
             pReadyBurstTotal = self.__total_remaining_cpu_bursts(pReady)
