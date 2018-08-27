@@ -58,6 +58,8 @@ class Process:
 
         # preempt boolean
         self.preempt = False
+        # process that preempted
+        self.preemptedByReadyQueueIndex = None
 
         # time quantum per process for scheduling algorithms that need it MFQ, RR, et cetera
         self.quantum = quantum

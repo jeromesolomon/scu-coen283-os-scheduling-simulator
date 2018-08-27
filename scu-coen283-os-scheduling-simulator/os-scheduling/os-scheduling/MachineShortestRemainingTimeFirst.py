@@ -36,14 +36,18 @@ class MachineShortestRemainingTimeFirst(Machine):
                     return preempt
 
         # find out if there is a process on the ready queue with a smaller remaining time
-        for pReady in self.ready:
+        for i in range(0, len(self.ready)):
+            pReady = self.ready[i]
             pReadyBurstTotal = self.__total_remaining_cpu_bursts(pReady)
             if pReadyBurstTotal < cpuBurstTotal:
                 preempt = True
+                # set the process preemption fields
+                p.preempt = True
+                p.preemptedByReadyQueueIndex = i
 
         return preempt
 
-    def process_preemption(self):
+    def __process_preemption(self):
         """
         move any preempted process to the ready q
         :return:
@@ -53,9 +57,21 @@ class MachineShortestRemainingTimeFirst(Machine):
         for i in range(0, len(self.cpu)):
             p = self.cpu[i]
             if (p is not None) and p.preempt:
-                self.ready.append(p)
-                self.cpu[i] = None
+
+                # save the preemptedBy process
+                preemptedBy = self.ready[p.preemptedByReadyQueueIndex]
+                # remove the preemptedBy process from the ready queue
+                self.ready.remove(preemptedBy)
+
+                # reset preemption values, and put the preempted process on the ready queue
                 p.preempt = False
+                p.preemptedByReadyQueueIndex = None
+                self.ready.append(p)
+
+                # take the preemptedBy process, and put it on the cpu
+                self.cpu[i] = preemptedBy
+
+
 
     def __total_remaining_cpu_bursts(self, p):
         """
@@ -225,7 +241,7 @@ class MachineShortestRemainingTimeFirst(Machine):
                     # put the current process on to the ready queue
                     if self.__preempt_cpu(p, i) and (len(self.ready) > 0):
                         p.timeOnCPUCurrentBurst = 0
-                        p.preempt = True
+                        self.__process_preemption()
 
             i += 1
 
@@ -243,9 +259,6 @@ class MachineShortestRemainingTimeFirst(Machine):
 
         # if any processes in newQ can proceed put them in the readyQ
         self.process_new_queue()
-
-        # handle preemption
-        self.process_preemption()
 
         #
         # handle the readyQ

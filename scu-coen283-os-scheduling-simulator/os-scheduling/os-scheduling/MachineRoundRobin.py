@@ -34,10 +34,12 @@ class MachineRoundRobin(Machine):
 
         if p.timeOnCPUCurrentBurst >= p.quantum:
             preempt = True
+            # set the process preemption fields
+            p.preempt = True
 
         return preempt
 
-    def process_preemption(self):
+    def __process_preemption(self):
         """
         move any preempted process to the ready q
         :return:
@@ -47,9 +49,16 @@ class MachineRoundRobin(Machine):
         for i in range(0, len(self.cpu)):
             p = self.cpu[i]
             if (p is not None) and p.preempt:
-                self.ready.append(p)
-                self.cpu[i] = None
+
+                # remove the preemptedBy process
+                preemptedBy = self.ready.popleft()
+
+                # reset preemption values, and put the preempted process on the ready queue
                 p.preempt = False
+                self.ready.append(p)
+
+                # take the preemptedBy process, and put it on the cpu
+                self.cpu[i] = preemptedBy
 
     def process_cpu(self):
         """
@@ -114,7 +123,7 @@ class MachineRoundRobin(Machine):
                     # put the current process on to the ready queue
                     if self.__preempt_cpu(p, i) and (len(self.ready) > 0):
                         p.timeOnCPUCurrentBurst = 0
-                        p.preempt = True
+                        self.__process_preemption()
 
             i += 1
 
@@ -132,9 +141,6 @@ class MachineRoundRobin(Machine):
 
         # if any processes in newQ can proceed put them in the readyQ
         self.process_new_queue()
-
-        # handle preemption
-        self.process_preemption()
 
         #
         # handle the readyQ
