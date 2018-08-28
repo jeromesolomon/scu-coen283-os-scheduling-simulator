@@ -5,6 +5,10 @@ import Process
 import Machine
 import Machine2
 import MachineFCFS
+import RR
+import MFQ
+import FirstInFirstOut
+
 import MachineRoundRobin
 import ScheduleUtilities
 import ScheduleTests
@@ -31,9 +35,11 @@ machine.add(process)
 #
 
 numCores = 1
+structure = FirstInFirstOut.FIFO()  # create the structure for the ready queue
+
 # machine = MachineFCFS.MachineFCFS(numCores)
-machine = MachineRoundRobin.MachineRoundRobin(numCores)
-#machine = Machine2.Machine2(numCores)
+# machine = MachineRoundRobin.MachineRoundRobin(numCores)
+machine = Machine2.Machine2(structure, numCores)  # pass the structure into the machine
 
 
 

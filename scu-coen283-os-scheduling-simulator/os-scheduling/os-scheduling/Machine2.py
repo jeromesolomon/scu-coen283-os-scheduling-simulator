@@ -8,7 +8,7 @@ class Machine2:
     Base machine class implement FCFS scheduling
     """
 
-    def __init__(self, numCores=1):
+    def __init__(self, structure, numCores=1):
         """
         initializes a machine object
         :param numCores: number of cores in the CPU
@@ -28,7 +28,7 @@ class Machine2:
 
         # queue for os handling of processes
         self.new = deque()
-        self.ready = RR.RR(3)
+        self.ready = structure
         self.blocked = deque()
         self.exit = deque()
 

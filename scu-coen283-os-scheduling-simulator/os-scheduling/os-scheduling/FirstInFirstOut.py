@@ -29,6 +29,8 @@ class FIFO:
         :param item: item to be added
         :return:
         """
+        burst = item.bursts[0] if len(item.bursts) > 0 else None
+        item.quantum = burst[1] if burst is not None else 0
         self.myQueue.append(item)
         self.size += 1
 

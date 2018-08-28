@@ -1,4 +1,5 @@
 from Machine2 import Machine2
+import RR
 
 
 class MachineRoundRobin(Machine2):
@@ -11,8 +12,7 @@ class MachineRoundRobin(Machine2):
         initializes a machine object
         :param numCores: number of cores in the CPU
         """
-
-        Machine2.__init__(self, numCores)
+        Machine2.__init__(self, RR.RR(3), numCores)
 
     def __preempt_cpu(self, p, coreIndex):
         """

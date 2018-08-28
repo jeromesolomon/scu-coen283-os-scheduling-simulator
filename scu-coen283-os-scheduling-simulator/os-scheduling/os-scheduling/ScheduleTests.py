@@ -62,6 +62,60 @@ def create_lecture_example(machine, quantum):
 
     return machine
 
+def create_lecture_example(machine, quantum):
+    """
+    Creates the example of four processes from Professor Amr Elkady's lecture
+    :return: returns a machine with the lecture example processes
+    """
+
+    #
+    # Professor Amr Elkady's class lecture example
+    #
+
+    quantum = 0
+
+    # process A
+    processA = Process.Process("A", 0, quantum)
+
+    processA.add_cpu_burst(4)
+    processA.add_io_burst(4)
+    processA.add_cpu_burst(4)
+    processA.add_io_burst(4)
+    processA.add_cpu_burst(4)
+
+    machine.add(processA)
+
+    # process B
+    processB = Process.Process("B", 2, quantum)
+
+    processB.add_cpu_burst(8)
+    processB.add_io_burst(1)
+    processB.add_cpu_burst(8)
+
+    machine.add(processB)
+
+    # process C
+    processC = Process.Process("C", 3, quantum)
+
+    processC.add_cpu_burst(2)
+    processC.add_io_burst(1)
+    processC.add_cpu_burst(2)
+
+    machine.add(processC)
+
+    # process D
+    processD = Process.Process("D", 7, quantum)
+
+    processD.add_cpu_burst(1)
+    processD.add_io_burst(1)
+    processD.add_cpu_burst(1)
+    processD.add_io_burst(1)
+    processD.add_cpu_burst(1)
+
+    machine.add(processD)
+
+    return machine
+
 
 def create_multi_core_test(machine):
 
