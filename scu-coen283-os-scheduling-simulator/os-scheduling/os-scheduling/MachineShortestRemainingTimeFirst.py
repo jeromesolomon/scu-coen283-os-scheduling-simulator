@@ -22,30 +22,19 @@ class MachineShortestRemainingTimeFirst(Machine):
         :return: true or false
         """
 
-        preempt = False
-
         # if the process has less time remaining than a process on the ready queue
-        cpuBurstTotal = self.__total_remaining_cpu_bursts(p)
-
-        # if the cpu-burst is done, do not preempt the process
-        if p is not None:
-            if len(p.bursts) > 0:
-                b = p.bursts[0]
-                if b[0] == "cpu" and b[1] == 0:
-                    preempt = False
-                    return preempt
+        cpuBurstTotal = self.__remaining_cpu_bursts(p)
 
         # find out if there is a process on the ready queue with a smaller remaining time
         for i in range(0, len(self.ready)):
             pReady = self.ready[i]
-            pReadyBurstTotal = self.__total_remaining_cpu_bursts(pReady)
+            pReadyBurstTotal = self.__remaining_cpu_bursts(pReady)
             if pReadyBurstTotal < cpuBurstTotal:
-                preempt = True
                 # set the process preemption fields
                 p.preempt = True
                 p.preemptedByReadyQueueIndex = i
 
-        return preempt
+        return p.preempt
 
     def __process_preemption(self):
         """
@@ -58,22 +47,29 @@ class MachineShortestRemainingTimeFirst(Machine):
             p = self.cpu[i]
             if (p is not None) and p.preempt:
 
-                # save the preemptedBy process
+                # remove the preemptedBy process
                 preemptedBy = self.ready[p.preemptedByReadyQueueIndex]
-                # remove the preemptedBy process from the ready queue
                 self.ready.remove(preemptedBy)
 
                 # reset preemption values, and put the preempted process on the ready queue
+                # adding back its cpu time so that it doesnt appear to have been on the cpu
                 p.preempt = False
-                p.preemptedByReadyQueueIndex = None
+                p.bursts[0][1] += 1
+                p.timeOnCPUCurrentBurst = 0
                 self.ready.append(p)
 
-                # take the preemptedBy process, and put it on the cpu
+                # take the preemptedBy process, and put it on the cpu as if it has been on
+                # the cpu for 1 cycle
+                if preemptedBy.bursts[0][1] > 0:
+                    preemptedBy.bursts[0][1] = preemptedBy.bursts[0][1] - 1
+
+                # increase time on cpu value
+                preemptedBy.timeOnCPUCurrentBurst += 1
+
+                # add it on to the cpu
                 self.cpu[i] = preemptedBy
 
-
-
-    def __total_remaining_cpu_bursts(self, p):
+    def __remaining_cpu_bursts(self, p):
         """
         returns the total remaining cpu burst for the process p
         :param p:
@@ -81,14 +77,14 @@ class MachineShortestRemainingTimeFirst(Machine):
         """
 
         # loop through all the remaining bursts in the process calculating the burstTotal
-        burstTotal = 0
+        burstRemaining = 0
         if p is not None:
-            for b in p.bursts:
+            if len(p.bursts) > 0:
+                b = p.bursts[0]
                 if b[0] == "cpu":
-                    burstValue = b[1]
-                    burstTotal += burstValue
+                    burstRemaining = b[1]
 
-        return burstTotal
+        return burstRemaining
 
     def __shortest_remaining_time_in_ready_queue(self):
         """
@@ -105,7 +101,7 @@ class MachineShortestRemainingTimeFirst(Machine):
 
             if p is not None:
                 # loop through all the remaining bursts in the process calculating the burstTotal
-                burstTotal = self.__total_remaining_cpu_bursts(p)
+                burstTotal = self.__remaining_cpu_bursts(p)
 
                 # set value to burst value if min has not been established
                 if minBurstTotal is None:
@@ -203,10 +199,16 @@ class MachineShortestRemainingTimeFirst(Machine):
                 burst = p.bursts[0]
 
                 # the cpu-burst is done when there is no more time left in the burst value
-                burstIsDone = (burst[1] == 0)
+                burstIsDone = False
+                if burst[0] == "io":
+                    burstIsDone = True
+                if burst[0] == "cpu":
+                    if burst[1] == 0:
+                        # pop the burst off the bursts queue
+                        p.bursts.popleft()
+                        burstIsDone = True
+
                 if burstIsDone:
-                    # pop the burst off the bursts queue
-                    p.bursts.popleft()
 
                     # if there are no more burst left, we are done.  Move process to the exit queue
                     # and free up this cpu core.  process ready queue so another process may be able to
@@ -232,6 +234,10 @@ class MachineShortestRemainingTimeFirst(Machine):
                     # if burst is not done, decrease the cpu-burst value by 1 and leave
                     # the process on the cpu for more processing
                     p.bursts[0][1] = p.bursts[0][1] - 1
+
+                    # if the cpu-burst is done, pop it off the burst list
+                    if p.bursts[0][1] == 0:
+                        p.bursts.popleft()
 
                     # increase time on cpu value
                     p.timeOnCPUCurrentBurst += 1

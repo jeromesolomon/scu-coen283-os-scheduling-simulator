@@ -22,22 +22,11 @@ class MachineRoundRobin(Machine):
         :return: true or false
         """
 
-        preempt = False
-
-        # if the cpu-burst is done, do not preempt the process
-        if p is not None:
-            if len(p.bursts) > 0:
-                b = p.bursts[0]
-                if b[0] == "cpu" and b[1] == 0:
-                    preempt = False
-                    return preempt
-
-        if p.timeOnCPUCurrentBurst >= p.quantum:
-            preempt = True
+        if p.timeOnCPUCurrentBurst > p.quantum:
             # set the process preemption fields
             p.preempt = True
 
-        return preempt
+        return p.preempt
 
     def __process_preemption(self):
         """
@@ -54,10 +43,21 @@ class MachineRoundRobin(Machine):
                 preemptedBy = self.ready.popleft()
 
                 # reset preemption values, and put the preempted process on the ready queue
+                # adding back its cpu time so that it doesnt appear to have been on the cpu
                 p.preempt = False
+                p.bursts[0][1] += 1
+                p.timeOnCPUCurrentBurst = 0
                 self.ready.append(p)
 
-                # take the preemptedBy process, and put it on the cpu
+                # take the preemptedBy process, and put it on the cpu as if it has been on
+                # the cpu for 1 cycle
+                if preemptedBy.bursts[0][1] > 0:
+                    preemptedBy.bursts[0][1] = preemptedBy.bursts[0][1] - 1
+
+                # increase time on cpu value
+                preemptedBy.timeOnCPUCurrentBurst += 1
+
+                # add it on to the cpu
                 self.cpu[i] = preemptedBy
 
     def process_cpu(self):

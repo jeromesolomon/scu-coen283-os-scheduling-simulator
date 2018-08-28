@@ -33,9 +33,9 @@ machine.add(process)
 
 numCores = 1
 # machine = MachineFCFS.MachineFCFS(numCores)
-machine = MachineRoundRobin.MachineRoundRobin(numCores)
+# machine = MachineRoundRobin.MachineRoundRobin(numCores)
 # machine = MachineShortestProcessFirst.MachineShortestProcessFirst(numCores)
-# machine = MachineShortestRemainingTimeFirst.MachineShortestRemainingTimeFirst(numCores)
+machine = MachineShortestRemainingTimeFirst.MachineShortestRemainingTimeFirst(numCores)
 
 # runs with lecture scheduling data
 ScheduleTests.create_lecture_example(machine, 3)
