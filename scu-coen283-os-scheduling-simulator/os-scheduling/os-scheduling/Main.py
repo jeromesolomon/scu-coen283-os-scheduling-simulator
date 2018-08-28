@@ -9,7 +9,7 @@ import RR
 import MFQ
 import FirstInFirstOut
 
-import MachineRoundRobin
+import PreemptiveMachine
 import ScheduleUtilities
 import ScheduleTests
 

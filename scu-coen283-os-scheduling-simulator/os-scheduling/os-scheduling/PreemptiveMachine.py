@@ -2,17 +2,17 @@ from Machine2 import Machine2
 import RR
 
 
-class MachineRoundRobin(Machine2):
+class PreemptiveMachine(Machine2):
     """
     Round robin scheduling algorithm
 
     """
-    def __init__(self, numCores):
+    def __init__(self, structure, numCores):
         """
         initializes a machine object
         :param numCores: number of cores in the CPU
         """
-        Machine2.__init__(self, RR.RR(3), numCores)
+        Machine2.__init__(self, structure, numCores)
 
     def __preempt_cpu(self, p, coreIndex):
         """
@@ -41,7 +41,7 @@ class MachineRoundRobin(Machine2):
             if (p is not None) and p.preempt:
                 self.ready.add(p)
                 self.cpu[i] = None
-                p.preempt = False
+                # p.preempt = False  # i want to retain the flag so that MFQ can know when something was preempted
 
     def process_cpu(self):
         """

@@ -31,6 +31,7 @@ class RR:
         :return:
         """
         item.quantum = self.quantum  # give the item the quantum
+        item.preempt = False
         self.myQueue.append(item)
         self.size += 1
 
