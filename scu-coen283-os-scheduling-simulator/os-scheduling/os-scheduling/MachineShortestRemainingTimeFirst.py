@@ -1,10 +1,9 @@
 from Machine import Machine
 
 
-class MachineRoundRobin(Machine):
+class MachineShortestRemainingTimeFirst(Machine):
     """
-    Round robin scheduling algorithm
-
+    shortest remaining time first scheduling algorith
     """
     def __init__(self, numCores):
         """
@@ -14,6 +13,21 @@ class MachineRoundRobin(Machine):
 
         Machine.__init__(self, numCores)
 
+    def __remaining_cpu_bursts(self, p):
+        """
+        returns the total remaining cpu burst for the process p
+        :return:
+        """
+
+        # loop through all the remaining bursts in the process calculating the burstTotal
+        burstRemaining = 0
+        if len(p.bursts) > 0:
+            b = p.bursts[0]
+            if b[0] == "cpu":
+                burstRemaining = b[1]
+
+        return burstRemaining
+
     def __preempt_cpu(self, p, coreIndex):
         """
         returns true if the process should be preempted
@@ -22,9 +36,17 @@ class MachineRoundRobin(Machine):
         :return: true or false
         """
 
-        if p.timeOnCPUCurrentBurst > p.quantum:
-            # set the process preemption fields
-            p.preempt = True
+        # if the process has less time remaining than a process on the ready queue
+        remainingBurst = self.__remaining_cpu_bursts(p)
+
+        # find out if there is a process on the ready queue with a smaller remaining time
+        for i in range(0, len(self.ready)):
+            pReady = self.ready[i]
+            pReadyRemainingBurst = self.__remaining_cpu_bursts(pReady)
+            if pReadyRemainingBurst <= remainingBurst:
+                # set the process preemption fields
+                p.preempt = True
+                p.preemptedByReadyQueueIndex = i
 
         return p.preempt
 
@@ -40,7 +62,8 @@ class MachineRoundRobin(Machine):
             if (p is not None) and p.preempt:
 
                 # remove the preemptedBy process
-                preemptedBy = self.ready.popleft()
+                preemptedBy = self.ready[p.preemptedByReadyQueueIndex]
+                self.ready.remove(preemptedBy)
 
                 # reset preemption values, and put the preempted process on the ready queue
                 # adding back its cpu time so that it doesnt appear to have been on the cpu
@@ -59,6 +82,95 @@ class MachineRoundRobin(Machine):
 
                 # add it on to the cpu
                 self.cpu[i] = preemptedBy
+
+
+    def __shortestReaminingTimeOnReadyQueue(self):
+        """
+        returns the process with the shortest remaining time on the ready queue
+        :return:
+        """
+
+        minBurst = None
+        minIndex = None
+
+        # for each process in ready queue
+        for i in range(0, len(self.ready)):
+            p = self.ready[i]
+            b = p.bursts[0]
+            if b[0] == "cpu":
+                burstValue = b[1]
+                # if minBurst is not set, set it.
+                if minBurst is None:
+                    minIndex = i
+                    minBurst = burstValue
+                else:
+                    # else, if its smaller, make it the minimum
+                    if burstValue < minBurst:
+                        minIndex = i
+                        minBurst = burstValue
+
+        p = self.ready[minIndex]
+
+        return p
+
+
+    def process_ready_queue(self):
+        """
+        evaluates and advances the ready queue
+        :return: None
+        """
+
+        # if any process in readyQ has cpu-burst next, move it to any available core
+        # if any process in readyQ has io-burst next, move it to the blocked queue
+        while self.cpu_is_available() and (len(self.ready) > 0):
+
+            # while there's a cpu available and there are processes in the ready queue
+
+            p = self.ready[0]
+
+            if len(p.bursts) == 0:
+                print("ERROR: moving process from ready queue directly to exit queue")
+                self.exit.append(p)
+            else:
+
+                burst = p.bursts[0]
+
+                # if burst is a cpu-burst, move the process with the lowest
+                # remaining cpu burst to the cpu
+                if burst[0] == "cpu":
+                    pSRTF = self.__shortestReaminingTimeOnReadyQueue()
+                    self.ready.remove(pSRTF)
+                    self.add_process_to_cpu(pSRTF)
+
+                # if burst is a io-burst, move it to the blocked queue
+                if burst[0] == "io":
+                    self.blocked.append(self.ready.popleft())
+
+    def reprocess_ready_queue(self, availableCoreIndex):
+        """
+        re-processes the ready queue for the cases that a core was made available.  Also, decrements
+        the cpu for the process appropriately
+        :return: None
+        """
+
+        # re-process the ready queue
+        self.process_ready_queue()
+
+        # if the core that was made available has a process decrement it's cpu-burst by 1
+        # since it will be on the cpu
+
+        if self.cpu[availableCoreIndex] is not None:
+
+            # get the first burst
+            burst = self.cpu[availableCoreIndex].bursts[0]
+
+            # if the process is not done with its cpu burst
+            if burst[1] > 0:
+                # if burst is not done, decrease the cpu-burst value by 1 and leave
+                # the process on the cpu for more processing
+                self.cpu[availableCoreIndex].bursts[0][1] -= 1
+                # increase time on cpu by 1
+                self.cpu[availableCoreIndex].timeOnCPUCurrentBurst += 1
 
     def process_cpu(self):
         """
@@ -121,7 +233,7 @@ class MachineRoundRobin(Machine):
                     # check if process should be preempted
                     # if preempted and the ready queue has other processes to put on the CPU, then
                     # put the current process on to the ready queue
-                    if self.__preempt_cpu(p, i) and (len(self.ready) > 0):
+                    if self.__preempt_cpu(p, i):
                         p.timeOnCPUCurrentBurst = 0
                         self.__process_preemption()
 
