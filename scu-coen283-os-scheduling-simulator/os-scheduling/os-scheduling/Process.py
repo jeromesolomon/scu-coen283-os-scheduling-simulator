@@ -43,7 +43,6 @@ class Process:
         # statistics
         
         # turn around time stats & response time stats
-        self.statsFirstTimeInReadyQueue = True
         self.statsFirstTimeInReadyQueueTimestamp = 0
 
         self.statsFirstTimeInExitQueue = True

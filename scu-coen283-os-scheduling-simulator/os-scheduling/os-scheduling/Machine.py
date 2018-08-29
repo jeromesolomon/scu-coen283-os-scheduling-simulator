@@ -288,7 +288,13 @@ class Machine:
 
             # if the process p can start put it in the ready q, if not, put it in the tempQ
             if p.startTime <= self.time:
+
+                # set statistics
+                p.statsFirstTimeInReadyQueueTimestamp = self.time
+
+                # add to ready queue
                 self.ready.append(p)
+
             else:
                 temp.append(p)
 
@@ -422,7 +428,7 @@ class Machine:
         if (len(self.blocked) > 0) and (self.io is None):
 
             # remove the process from the blocked queue
-            p = self.blocked.pop()
+            p = self.blocked.popleft()
 
             # put the process in to io
             self.io = p
@@ -582,16 +588,6 @@ class Machine:
         # if the any core has a process, increase the cpu time stats
         if self.__cpu_has_a_core_busy():
             self.cpuTimeUsed += 1
-
-        # for each process if first time in ready queue, set timestamp
-        for p in self.ready:
-            if p is not None:
-                if p.statsFirstTimeInReadyQueue:
-                    if p.startTime == 0:
-                        p.statsFirstTimeInReadyQueueTimestamp = 0
-                    else:
-                        p.statsFirstTimeInReadyQueueTimestamp = self.time
-                    p.statsFirstTimeInReadyQueue = False
 
         # for each process if in ready queue, increase total time in ready queue by 1
         for p in self.ready:

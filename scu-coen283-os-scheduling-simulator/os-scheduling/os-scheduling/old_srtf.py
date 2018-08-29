@@ -3,8 +3,9 @@ from Machine import Machine
 
 class MachineShortestRemainingTimeFirst(Machine):
     """
-    shortest remaining time first scheduling algorith
+    Round robin scheduling algorithm
     """
+
     def __init__(self, numCores):
         """
         initializes a machine object
@@ -12,21 +13,6 @@ class MachineShortestRemainingTimeFirst(Machine):
         """
 
         Machine.__init__(self, numCores)
-
-    def __remaining_cpu_bursts(self, p):
-        """
-        returns the total remaining cpu burst for the process p
-        :return:
-        """
-
-        # loop through all the remaining bursts in the process calculating the burstTotal
-        burstRemaining = 0
-        if len(p.bursts) > 0:
-            b = p.bursts[0]
-            if b[0] == "cpu":
-                burstRemaining = b[1]
-
-        return burstRemaining
 
     def __preempt_cpu(self, p, coreIndex):
         """
@@ -37,13 +23,13 @@ class MachineShortestRemainingTimeFirst(Machine):
         """
 
         # if the process has less time remaining than a process on the ready queue
-        remainingBurst = self.__remaining_cpu_bursts(p)
+        cpuBurstTotal = self.__remaining_cpu_bursts(p)
 
         # find out if there is a process on the ready queue with a smaller remaining time
         for i in range(0, len(self.ready)):
             pReady = self.ready[i]
-            pReadyRemainingBurst = self.__remaining_cpu_bursts(pReady)
-            if pReadyRemainingBurst <= remainingBurst:
+            pReadyBurstTotal = self.__remaining_cpu_bursts(pReady)
+            if pReadyBurstTotal < cpuBurstTotal:
                 # set the process preemption fields
                 p.preempt = True
                 p.preemptedByReadyQueueIndex = i
@@ -83,36 +69,51 @@ class MachineShortestRemainingTimeFirst(Machine):
                 # add it on to the cpu
                 self.cpu[i] = preemptedBy
 
-
-    def __shortestReaminingTimeOnReadyQueue(self):
+    def __remaining_cpu_bursts(self, p):
         """
-        returns the process with the shortest remaining time on the ready queue
+        returns the total remaining cpu burst for the process p
+        :param p:
         :return:
         """
 
-        minBurst = None
-        minIndex = None
+        # loop through all the remaining bursts in the process calculating the burstTotal
+        burstRemaining = 0
+        if p is not None:
+            if len(p.bursts) > 0:
+                b = p.bursts[0]
+                if b[0] == "cpu":
+                    burstRemaining = b[1]
 
-        # for each process in ready queue
+        return burstRemaining
+
+    def __shortest_remaining_time_in_ready_queue(self):
+        """
+        returns the index of the process in the ready queue with the shortest cpu burst
+        :return: index of process
+        """
+        # set minimum values to none
+        minBurstTotal = None
+        minProcessIndex = None
+
+        # loop through the ready queue to find the smallest total remaining cpu bursts
         for i in range(0, len(self.ready)):
             p = self.ready[i]
-            b = p.bursts[0]
-            if b[0] == "cpu":
-                burstValue = b[1]
-                # if minBurst is not set, set it.
-                if minBurst is None:
-                    minIndex = i
-                    minBurst = burstValue
-                else:
-                    # else, if its smaller, make it the minimum
-                    if burstValue < minBurst:
-                        minIndex = i
-                        minBurst = burstValue
 
-        p = self.ready[minIndex]
+            if p is not None:
+                # loop through all the remaining bursts in the process calculating the burstTotal
+                burstTotal = self.__remaining_cpu_bursts(p)
 
-        return p
+                # set value to burst value if min has not been established
+                if minBurstTotal is None:
+                    minBurstTotal = burstTotal
+                    minProcessIndex = i
 
+                # find the shortest burst value
+                if burstTotal < minBurstTotal:
+                    minBurstTotal = burstTotal
+                    minProcessIndex = i
+
+        return minProcessIndex
 
     def process_ready_queue(self):
         """
@@ -120,13 +121,15 @@ class MachineShortestRemainingTimeFirst(Machine):
         :return: None
         """
 
-        # if any process in readyQ has cpu-burst next, move it to any available core
-        # if any process in readyQ has io-burst next, move it to the blocked queue
+        # if any process in readyQ has cpu-burst next, move the shortest cpu-burst to any available core
+        # if any process in readyQ has io-burst next, move the shortest cpu-burst to the blocked queue
+
         while self.cpu_is_available() and (len(self.ready) > 0):
 
             # while there's a cpu available and there are processes in the ready queue
 
-            p = self.ready[0]
+            shortestIndex = self.__shortest_remaining_time_in_ready_queue()
+            p = self.ready[shortestIndex]
 
             if len(p.bursts) == 0:
                 print("ERROR: moving process from ready queue directly to exit queue")
@@ -135,16 +138,15 @@ class MachineShortestRemainingTimeFirst(Machine):
 
                 burst = p.bursts[0]
 
-                # if burst is a cpu-burst, move the process with the lowest
-                # remaining cpu burst to the cpu
+                # if burst is a cpu-burst, move it to the cpu
                 if burst[0] == "cpu":
-                    pSRTF = self.__shortestReaminingTimeOnReadyQueue()
-                    self.ready.remove(pSRTF)
-                    self.add_process_to_cpu(pSRTF)
+                    self.add_process_to_cpu(p)
+                    self.ready.remove(p)
 
                 # if burst is a io-burst, move it to the blocked queue
                 if burst[0] == "io":
-                    self.blocked.append(self.ready.popleft())
+                    self.blocked.append(p)
+                    self.ready.remove(p)
 
     def reprocess_ready_queue(self, availableCoreIndex):
         """
@@ -197,10 +199,16 @@ class MachineShortestRemainingTimeFirst(Machine):
                 burst = p.bursts[0]
 
                 # the cpu-burst is done when there is no more time left in the burst value
-                burstIsDone = (burst[1] == 0)
+                burstIsDone = False
+                if burst[0] == "io":
+                    burstIsDone = True
+                if burst[0] == "cpu":
+                    if burst[1] == 0:
+                        # pop the burst off the bursts queue
+                        p.bursts.popleft()
+                        burstIsDone = True
+
                 if burstIsDone:
-                    # pop the burst off the bursts queue
-                    p.bursts.popleft()
 
                     # if there are no more burst left, we are done.  Move process to the exit queue
                     # and free up this cpu core.  process ready queue so another process may be able to
@@ -227,13 +235,17 @@ class MachineShortestRemainingTimeFirst(Machine):
                     # the process on the cpu for more processing
                     p.bursts[0][1] = p.bursts[0][1] - 1
 
+                    # if the cpu-burst is done, pop it off the burst list
+                    if p.bursts[0][1] == 0:
+                        p.bursts.popleft()
+
                     # increase time on cpu value
                     p.timeOnCPUCurrentBurst += 1
 
                     # check if process should be preempted
                     # if preempted and the ready queue has other processes to put on the CPU, then
                     # put the current process on to the ready queue
-                    if self.__preempt_cpu(p, i):
+                    if self.__preempt_cpu(p, i) and (len(self.ready) > 0):
                         p.timeOnCPUCurrentBurst = 0
                         self.__process_preemption()
 
