@@ -1,18 +1,18 @@
-from Machine import Machine
+from Machine2 import Machine2
+import RR
 
 
-class MachineRoundRobin(Machine):
+class PreemptiveMachine(Machine2):
     """
     Round robin scheduling algorithm
 
     """
-    def __init__(self, numCores):
+    def __init__(self, structure, numCores):
         """
         initializes a machine object
         :param numCores: number of cores in the CPU
         """
-
-        Machine.__init__(self, numCores)
+        Machine2.__init__(self, structure, numCores)
 
     def __preempt_cpu(self, p, coreIndex):
         """
@@ -38,6 +38,7 @@ class MachineRoundRobin(Machine):
         for i in range(0, len(self.cpu)):
             p = self.cpu[i]
             if (p is not None) and p.preempt:
+<<<<<<< HEAD:scu-coen283-os-scheduling-simulator/os-scheduling/os-scheduling/MachineRoundRobin.py
 
                 # remove the preemptedBy process
                 preemptedBy = self.ready.popleft()
@@ -59,6 +60,11 @@ class MachineRoundRobin(Machine):
 
                 # add it on to the cpu
                 self.cpu[i] = preemptedBy
+=======
+                self.ready.add(p)
+                self.cpu[i] = None
+                # p.preempt = False  # i want to retain the flag so that MFQ can know when something was preempted
+>>>>>>> MFQ:scu-coen283-os-scheduling-simulator/os-scheduling/os-scheduling/PreemptiveMachine.py
 
     def process_cpu(self):
         """
@@ -118,10 +124,13 @@ class MachineRoundRobin(Machine):
                     # increase time on cpu value
                     p.timeOnCPUCurrentBurst += 1
 
+                    #increase cputime for process
+                    p.cputime += 1
+
                     # check if process should be preempted
                     # if preempted and the ready queue has other processes to put on the CPU, then
                     # put the current process on to the ready queue
-                    if self.__preempt_cpu(p, i) and (len(self.ready) > 0):
+                    if self.__preempt_cpu(p, i) and self.ready.size > 0:
                         p.timeOnCPUCurrentBurst = 0
                         self.__process_preemption()
 
@@ -199,7 +208,7 @@ class MachineRoundRobin(Machine):
         mystring += self.str_queue("New queue", self.new)
 
         # the ready queue
-        mystring += self.str_queue("Ready queue", self.ready)
+        mystring += self.str_queue("Ready queue", self.ready.toQueue())
 
         # the running/CPU processes
         mystring += "CPU:\n"

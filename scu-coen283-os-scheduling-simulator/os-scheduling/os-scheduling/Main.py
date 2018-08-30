@@ -3,10 +3,13 @@ import datetime
 
 import Process
 import Machine
+import Machine2
 import MachineFCFS
-import MachineRoundRobin
-import MachineShortestProcessFirst
-import MachineShortestRemainingTimeFirst
+import RR
+import MFQ
+import FirstInFirstOut
+
+import PreemptiveMachine
 import ScheduleUtilities
 import ScheduleTests
 
@@ -32,13 +35,19 @@ machine.add(process)
 #
 
 numCores = 1
+structure = MFQ.MFQ([RR.RR(3), RR.RR(3)])  # create the structure for the ready queue
+
 # machine = MachineFCFS.MachineFCFS(numCores)
 # machine = MachineRoundRobin.MachineRoundRobin(numCores)
+
 # machine = MachineShortestProcessFirst.MachineShortestProcessFirst(numCores)
-machine = MachineShortestRemainingTimeFirst.MachineShortestRemainingTimeFirst(numCores)
+#machine = MachineShortestRemainingTimeFirst.MachineShortestRemainingTimeFirst(numCores)
+machine = Machine2.Machine2(structure, numCores)  # pass the structure into the machine
+
 
 # runs with lecture scheduling data
 ScheduleTests.create_lecture_example(machine, 3)
+ScheduleTests.create_CFS_example(machine)
 
 # multi-core test
 # ScheduleTests.create_multi_core_test(machine)

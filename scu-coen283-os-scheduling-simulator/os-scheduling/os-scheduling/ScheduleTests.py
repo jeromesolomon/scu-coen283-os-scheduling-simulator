@@ -2,11 +2,25 @@ import os
 import datetime
 
 import Machine
+import PreemptiveMachine
 import Process
 
 """
 Test functions for schedule toolset
 """
+
+def create_CFS_example(machine):
+    for i in range(10):
+        p = Process.Process('p%d' % i, 2 * i, 0)
+        if i < 8:
+            p.set_by_stats(10, 1, 1, 10, 1) # make 5 io bound processes
+        else:
+            p.set_by_stats(4, 20, 5, 3, 1)
+
+        p.priority = i if i < 8 else 8
+
+        machine.add(p)
+        return machine
 
 def create_lecture_example(machine, quantum):
     """
