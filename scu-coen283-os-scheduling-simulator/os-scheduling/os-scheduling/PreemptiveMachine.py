@@ -7,6 +7,7 @@ class PreemptiveMachine(Machine2):
     Round robin scheduling algorithm
 
     """
+
     def __init__(self, structure, numCores):
         """
         initializes a machine object
@@ -38,7 +39,6 @@ class PreemptiveMachine(Machine2):
         for i in range(0, len(self.cpu)):
             p = self.cpu[i]
             if (p is not None) and p.preempt:
-<<<<<<< HEAD:scu-coen283-os-scheduling-simulator/os-scheduling/os-scheduling/MachineRoundRobin.py
 
                 # remove the preemptedBy process
                 preemptedBy = self.ready.popleft()
@@ -60,11 +60,6 @@ class PreemptiveMachine(Machine2):
 
                 # add it on to the cpu
                 self.cpu[i] = preemptedBy
-=======
-                self.ready.add(p)
-                self.cpu[i] = None
-                # p.preempt = False  # i want to retain the flag so that MFQ can know when something was preempted
->>>>>>> MFQ:scu-coen283-os-scheduling-simulator/os-scheduling/os-scheduling/PreemptiveMachine.py
 
     def process_cpu(self):
         """
@@ -124,7 +119,7 @@ class PreemptiveMachine(Machine2):
                     # increase time on cpu value
                     p.timeOnCPUCurrentBurst += 1
 
-                    #increase cputime for process
+                    # increase cputime for process
                     p.cputime += 1
 
                     # check if process should be preempted
