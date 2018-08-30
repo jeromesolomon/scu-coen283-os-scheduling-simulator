@@ -32,7 +32,7 @@ class MFQ:
         :return: frontmost element from highest priority queue
         '''
         for i in range(self.numLevels):  # look through each queue in from highest to lowest priority
-            if len(self.structureList[i]) > 0:  # if the queue i'm looking at isn't empty
+            if self.structureList[i].size > 0:  # if the queue i'm looking at isn't empty
                 self.size -= 1
                 return self.structureList[i].get()  # remove the first item and return it
         return None  # if the whole thing is empty, return None
@@ -43,8 +43,8 @@ class MFQ:
         :return: frontmost element from highest priority queue
         '''
         for i in range(self.numLevels):
-            if len(self.structureList[i]) > 0:
-                return self.structureList[i][0]
+            if self.structureList[i].size > 0:
+                return self.structureList[i].peek()
         return None
 
     def isEmpty(self):

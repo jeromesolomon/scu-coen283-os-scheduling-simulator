@@ -101,6 +101,9 @@ class PreemptiveMachine(Machine2):
                     # increase time on cpu value
                     p.timeOnCPUCurrentBurst += 1
 
+                    #increase cputime for process
+                    p.cputime += 1
+
                     # check if process should be preempted
                     # if preempted and the ready queue has other processes to put on the CPU, then
                     # put the current process on to the ready queue
