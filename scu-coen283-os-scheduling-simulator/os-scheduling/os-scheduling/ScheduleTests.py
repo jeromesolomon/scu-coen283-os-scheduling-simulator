@@ -4,23 +4,34 @@ import datetime
 import Machine
 import PreemptiveMachine
 import Process
+import random
 
 """
 Test functions for schedule toolset
 """
 
 def create_CFS_example(machine):
+    processArray = []
     for i in range(5):
-        p = Process.Process('p%d' % i, 2 * i, 0)
+        p = Process.Process('p%d' % i, 0, 0)
         if i < 4:
-            p.set_by_stats(10, 1, 1, 10, 1) # make 5 io bound processes
+            p.set_by_stats(10, 1, 1, 10, 1)  # make 3 io bound processes
         else:
-            p.set_by_stats(4, 20, 5, 3, 1)
+            p.set_by_stats(4, 20, 5, 3, 1)  # make 2 cpu-bound processes
 
         p.priority = i if i < 8 else 8
 
-        machine.add(p)
+        processArray.append(p)
         print(p)
+    random.shuffle(processArray)
+    startTime = 0
+    pid = 100
+    for p in processArray:
+        p.startTime = startTime
+        p.id = pid
+        startTime += 2
+        pid += 1
+        machine.add(p)
     return machine
 
 def create_lecture_example(machine, quantum):
