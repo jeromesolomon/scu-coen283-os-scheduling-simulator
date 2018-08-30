@@ -41,14 +41,14 @@ class PreemptiveMachine(Machine2):
             if (p is not None) and p.preempt:
 
                 # remove the preemptedBy process
-                preemptedBy = self.ready.popleft()
+                preemptedBy = self.ready.get()
 
                 # reset preemption values, and put the preempted process on the ready queue
                 # adding back its cpu time so that it doesnt appear to have been on the cpu
                 p.preempt = False
                 p.bursts[0][1] += 1
                 p.timeOnCPUCurrentBurst = 0
-                self.ready.append(p)
+                self.ready.add(p)
 
                 # take the preemptedBy process, and put it on the cpu as if it has been on
                 # the cpu for 1 cycle
