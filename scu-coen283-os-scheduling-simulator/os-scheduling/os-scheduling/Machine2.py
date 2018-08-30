@@ -17,7 +17,7 @@ class Machine2:
         self.time = 0
 
         # a process table
-        self.processTable = []
+        self.processInfoTable = []
 
         # cpu is a list of processes of size numCores (each representing a core on the cpu)
         self.numCores = numCores
@@ -51,10 +51,11 @@ class Machine2:
         """
 
         # add the process to the new queue
+
         self.new.append(process)
 
         # add the process to the process table
-        self.processTable.append(process)
+        self.processInfoTable.append(process)
 
     def str_queue(self, qname, q):
         """
@@ -830,5 +831,109 @@ class Machine2:
 
         average = total / n
         s += ("%.2f" % average) + "\n"
+
+        csvFile.write(s)
+
+    def str_process_info_table(self):
+        """
+        returns a string used to print the process info table
+        :return:
+        """
+
+        s = ""
+        s += "Process Information Table:" + "\n"
+        s += "---------------------------------------------"
+        s += "\n"
+
+        #
+        # construct the header
+        #
+
+        s += "Name\tID\tArrival Time"
+
+        # figure out maximum number of bursts
+        maxNumBursts = 0
+        for p in self.processInfoTable:
+            maxNumBursts = max(maxNumBursts, len(p.bursts))
+
+        s += "\t"
+        for i in range(0, maxNumBursts-1):
+            s += "Burst " + str(i) + " Type" + "\t"
+            s += "Burst " + str(i) + " Value" + "\t"
+
+        s += "Burst " + str(maxNumBursts-1) + " Type" + "\t"
+        s += "Burst " + str(maxNumBursts-1) + " Value" + "\n"
+
+        #
+        # construct the table
+        #
+
+        for p in self.processInfoTable:
+
+            s += p.name + "\t"
+            s += str(p.id) + "\t"
+            s += str(p.startTime) + "\t"
+
+            for b in p.bursts:
+                s += b[0] + "\t"
+                s += str(b[1]) + "\t"
+                s += "\t"
+            s += "\n"
+
+        s += "---------------------------------------------"
+        s += "\n"
+
+        s += ""
+
+        return s
+    def csv_process_info_table_write(self, csvFile):
+        """
+        writes the process info to a csv file
+        :param csvFile:
+        :return:
+        """
+
+        s = ""
+
+        #
+        # construct the header
+        #
+
+        s += "Name,ID,Arrival Time,"
+
+        # figure out maximum number of burts
+        maxNumBursts = 0
+        for p in self.processInfoTable:
+            maxNumBursts = max(maxNumBursts, len(p.bursts))
+
+        s += "\t"
+        for i in range(0, maxNumBursts-1):
+            s += "Burst " + str(i) + " Type" + ","
+            s += "Burst " + str(i) + " Value" + ","
+
+        s += "Burst " + str(maxNumBursts-1) + " Type" + ","
+        s += "Burst " + str(maxNumBursts-1) + " Value" + "\n"
+
+        #
+        # construct the table
+        #
+
+        for p in self.processInfoTable:
+
+            s += p.name + ","
+            s += str(p.id) + ","
+            s += str(p.startTime) + ","
+
+            numBursts = len(p.bursts)
+            for i in range(0, numBursts - 1):
+                b = p.bursts[i]
+                s += b[0] + ","
+                s += str(b[1]) + ","
+
+            b = p.bursts[numBursts-1]
+            s += b[0] + ","
+            s += str(b[1]) + ","
+
+            s += "\n"
 
         csvFile.write(s)

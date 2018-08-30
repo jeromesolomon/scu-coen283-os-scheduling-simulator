@@ -45,6 +45,8 @@ class Process:
         self.cputime = 0
 
         # statistics
+
+        self.statsFirstTimeInReadyQueue = True
         
         # turn around time stats & response time stats
         self.statsFirstTimeInReadyQueueTimestamp = 0
