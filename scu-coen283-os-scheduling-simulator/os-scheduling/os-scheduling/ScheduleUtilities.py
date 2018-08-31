@@ -8,6 +8,7 @@ import Process
 Utility functions for schedule toolset
 """
 
+
 def open_output_file(fileName, ext):
     """
     opens an output file in the outputfile directory
@@ -16,21 +17,19 @@ def open_output_file(fileName, ext):
     :return: output file handle
     """
 
-    # create an output directory
-    outputPath = "./output"
+    # create a unique folder name based on date
+    dirExt = datetime.datetime.today().strftime('%m_%d_%y_%H_%M_%S')
+
+    outputPath = "./output/" + dirExt
     if not os.path.exists(outputPath):
         os.makedirs(outputPath)
 
-    # create a unique file extension name based on date
-    # dateExt = datetime.datetime.today().strftime('%m_%d_%y')
-    # dateExt = ""
-
     # open a file for saving & viewing the simulation in excel
     longFileName = outputPath + "/" + fileName
-    theFile = None
 
+    theFile = None
     try:
-        theFile = open(longFileName + ".csv", "w")
+        theFile = open(longFileName + "." + ext, "w")
     except IOError:
         print("ERROR: opening the file " + longFileName)
         exit(-1)

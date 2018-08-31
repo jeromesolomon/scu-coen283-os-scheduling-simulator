@@ -11,102 +11,116 @@ import ScheduleUtilities
 import ScheduleTests
 
 
-#
-# Jon's original example
-#
-"""
-machine = Machine.Machine()
+def run_simulation(machine, testName):
+    """
+    runs a scheduling algorithm simulation
+    :param machine: the machine/algorithm
+    :param testName: the name of the test
+    :return:
+    """
 
-process = Process.Process("A", 0)
-process.set_by_stats(1, 35, 0, 0, 0)  # makes a process with 1 burst of length 35, no io.
-machine.add(process)
+    # open output data files
+    csvProcessTraceTableFile = ScheduleUtilities.open_output_file(testName + "_process_trace_table", "csv")
+    csvStatsTableFile = ScheduleUtilities.open_output_file(testName + "_statistics_table" + testName, "csv")
+    csvProcessInfoTableFile = ScheduleUtilities.open_output_file(testName + "_process_info_table", "csv")
 
-process = Process.Process("B", 5)
-# makes a process with 1 burst of length 35, no io, enters 5 time units after previous process.
-process.set_by_stats(1, 35, 0, 0, 0)
-machine.add(process)
-"""
+    # write the csv header
+    machine.csv_process_trace_table_write_header(csvProcessTraceTableFile)
+    machine.csv_statistics_table_write_header(csvStatsTableFile)
 
-#
-# Jerome's Test Cases
-#
+    #
+    # start the simulation
+    #
 
-numCores = 1
-# machine = MachineFCFS.MachineFCFS(numCores)
-# machine = MachineRoundRobin.MachineRoundRobin(numCores)
-# machine = MachineShortestProcessFirst.MachineShortestProcessFirst(numCores)
-machine = MachineShortestRemainingTimeFirst.MachineShortestRemainingTimeFirst(numCores)
+    # print process info table
+    # print(machine.str_process_info_table())
 
-# runs with lecture scheduling data
-ScheduleTests.create_lecture_example(machine, 3)
+    # print machine initial state of machine
+    # print("Initial machine status:")
+    # print(machine)
 
-# multi-core test
-# ScheduleTests.create_multi_core_test(machine)
-# machine = ScheduleTests.add_test_processes(numCores)
+    # write table info file
+    machine.csv_process_info_table_write(csvProcessInfoTableFile)
 
-# single process test
-# machine = ScheduleTests.create_single_process_test(numCores)
+    # run the machine to completion
+    print("Running the simulation " + testName)
 
-# round robin test
-# machine = ScheduleTests.create_round_robin_test(numCores)
+    while machine.process_all():
 
+        # print status of the machine
+        # print(machine)
 
-# open output data files
-csvProcessTraceTableFile = ScheduleUtilities.open_output_file("process_trace_table", "csv")
-csvStatsTableFile = ScheduleUtilities.open_output_file("statistics_table", "csv")
-csvProcessInfoTableFile = ScheduleUtilities.open_output_file("process_info_table", "csv")
+        # write a status line to the csv file
+        machine.csv_process_trace_table_write(csvProcessTraceTableFile)
 
-# write the csv header
-machine.csv_process_trace_table_write_header(csvProcessTraceTableFile)
-machine.csv_statistics_table_write_header(csvStatsTableFile)
+        # calculate statistics
+        machine.calculate_statistics()
 
-#
-# start the simulation
-#
+        # write statistics
+        machine.csv_statistics_table_write(csvStatsTableFile)
 
-# print process info table
-print(machine.str_process_info_table())
+        # process stage2 io
+        machine.process_io_stage2()
 
-# print machine initial state of machine
-print("Initial machine status:")
-print(machine)
+        # increase time
+        machine.time += 1
 
-# write table info file
-machine.csv_process_info_table_write(csvProcessInfoTableFile)
+    print("Simulation done.")
+    # print the final machine status
+    # print("Final machine status:")
+    # print(machine)
 
-# run the machine to completion
-print("Running the simulation:")
-while machine.process_all():
+    # print the statistics
+    machine.print_statistics()
 
-    # print status of the machine
-    print(machine)
-
-    # write a status line to the csv file
-    machine.csv_process_trace_table_write(csvProcessTraceTableFile)
-
-    # calculate statistics
-    machine.calculate_statistics()
-
-    # write statistics
+    # save the final statistics
     machine.csv_statistics_table_write(csvStatsTableFile)
 
-    # process stage2 io
-    machine.process_io_stage2()
+    # close the file
+    csvProcessTraceTableFile.close()
+    csvStatsTableFile.close()
+    csvProcessInfoTableFile.close()
 
-    # increase time
-    machine.time += 1
 
-# print the final machine status
-print("Final machine status:")
-print(machine)
+#
+# MAIN
+#
 
-# print the statistics
-machine.print_statistics()
+# various type of core configurations
+numCoreList = [1, 8, 72]
 
-# save the final statistics
-machine.csv_statistics_table_write(csvStatsTableFile)
+# number of processes in each sim
+numProcessesList = [4, 500, 5000]
 
-# close the file
-csvProcessTraceTableFile.close()
-csvStatsTableFile.close()
-csvProcessInfoTableFile.close()
+# number of type of schedule algorithms
+typeMachinesList = ["FCFS", "RoundRobin", "SPF", "SRTF"]
+numTypeMachines = len(typeMachinesList)
+
+matrix = [[[0 for i in range(len(typeMachinesList))] for j in range(len(numCoreList))] for k in range(len(numProcessesList))]
+
+# create machines
+for numProcess in numProcessesList:
+    for i in range(0, len(numCoreList)):
+
+    machineListFCFS.append(MachineFCFS.MachineFCFS(numCore))
+    machineListRoundRobin.append(MachineRoundRobin.MachineRoundRobin(numCore))
+    machineListSPF.append(MachineShortestProcessFirst.MachineShortestProcessFirst(numCore))
+    machineListSRTF.append(MachineShortestRemainingTimeFirst.MachineShortestRemainingTimeFirst(numCore))
+
+# create process test cases
+for numProcess in numProcessesList:
+    for i in range(0, len(numCoreList)):
+        ScheduleTests.create_delivery_test(machineListFCFS[i], numProcess)
+        ScheduleTests.create_delivery_test(machineListRoundRobin[i], numProcess)
+        ScheduleTests.create_delivery_test(machineListSPF[i], numProcess)
+        ScheduleTests.create_delivery_test(machineListSRTF[i], numProcess)
+
+# runs with lecture scheduling data
+# ScheduleTests.create_lecture_example(machine, 3)
+# ScheduleTests.create_delivery_test(machine, 500)
+
+# create process test cases
+for numProcess in numProcessesList:
+    for i in range(0, len(numCoreList)):
+        run_simulation(machineListFCFS[i], "FCFS_" + "processes_" + str(numProcess) + "_cores_" + str(numCoreList[i]))
+

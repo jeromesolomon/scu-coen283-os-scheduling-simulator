@@ -598,11 +598,8 @@ class Machine:
         for p in self.cpu:
             if p is not None:
                 if p.statsFirstTimeOnCPU:
-                    if p.startTime == 0:
-                        p.statsFirstTimeOnCPUTimestamp = 0
-                    else:
-                        p.statsFirstTimeOnCPUTimestamp = self.time
                     p.statsFirstTimeOnCPU = False
+                    p.statsFirstTimeOnCPUTimestamp = self.time
 
     def print_statistics(self):
         """
