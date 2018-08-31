@@ -87,7 +87,7 @@ def run_simulation(machine, testName):
 #
 
 # various type of core configurations
-numCoreList = [1, 8, 72]
+numCoresList = [1, 8, 72]
 
 # number of processes in each sim
 numProcessesList = [4, 500, 5000]
@@ -96,31 +96,48 @@ numProcessesList = [4, 500, 5000]
 typeMachinesList = ["FCFS", "RoundRobin", "SPF", "SRTF"]
 numTypeMachines = len(typeMachinesList)
 
-matrix = [[[0 for i in range(len(typeMachinesList))] for j in range(len(numCoreList))] for k in range(len(numProcessesList))]
+machineMatrix = [[[0 for i in range(len(typeMachinesList))] for j in range(len(numCoresList))] for k in range(len(numProcessesList))]
 
-# create machines
-for numProcess in numProcessesList:
-    for i in range(0, len(numCoreList)):
+#
+# create all the machines and add them to the matrix
+#
+for process in range(0, len(numProcessesList)):
+    for core in range(0, len(numCoresList)):
 
-    machineListFCFS.append(MachineFCFS.MachineFCFS(numCore))
-    machineListRoundRobin.append(MachineRoundRobin.MachineRoundRobin(numCore))
-    machineListSPF.append(MachineShortestProcessFirst.MachineShortestProcessFirst(numCore))
-    machineListSRTF.append(MachineShortestRemainingTimeFirst.MachineShortestRemainingTimeFirst(numCore))
+        # add machines of each type to the matrix
 
+        # FCFS
+        machineMatrix[0][process][core] = MachineFCFS.MachineFCFS(numCoresList[core])
+
+        # Round Robin
+        machineMatrix[1][process][core] = MachineRoundRobin.MachineRoundRobin(numCoresList[core])
+
+        # SPF
+        machineMatrix[2][process][core] = MachineShortestProcessFirst.MachineShortestProcessFirst(numCoresList[core])
+
+        # SRTF
+        machineMatrix[3][process][core] = MachineShortestRemainingTimeFirst.MachineShortestRemainingTimeFirst(numCoresList[core])
+
+
+#
 # create process test cases
-for numProcess in numProcessesList:
-    for i in range(0, len(numCoreList)):
-        ScheduleTests.create_delivery_test(machineListFCFS[i], numProcess)
-        ScheduleTests.create_delivery_test(machineListRoundRobin[i], numProcess)
-        ScheduleTests.create_delivery_test(machineListSPF[i], numProcess)
-        ScheduleTests.create_delivery_test(machineListSRTF[i], numProcess)
+#
+for process in range(0, len(numProcessesList)):
+    for core in range(0, len(numCoresList)):
+
+        machineMatrix[0][process][core].ScheduleTests.create_delivery_test(machineMatrix[0][process][core], numProcessesList[process])
+        machineMatrix[1][process][core].ScheduleTests.create_delivery_test(machineMatrix[1][process][core], numProcessesList[process])
+        machineMatrix[2][process][core].ScheduleTests.create_delivery_test(machineMatrix[2][process][core], numProcessesList[process])
+        machineMatrix[3][process][core].ScheduleTests.create_delivery_test(machineMatrix[3][process][core], numProcessesList[process])
 
 # runs with lecture scheduling data
 # ScheduleTests.create_lecture_example(machine, 3)
 # ScheduleTests.create_delivery_test(machine, 500)
 
 # create process test cases
-for numProcess in numProcessesList:
-    for i in range(0, len(numCoreList)):
+"""
+for process in range(0, len(numProcessesList)):
+    for core in range(0, len(numCoresList)):
+        
         run_simulation(machineListFCFS[i], "FCFS_" + "processes_" + str(numProcess) + "_cores_" + str(numCoreList[i]))
-
+"""
