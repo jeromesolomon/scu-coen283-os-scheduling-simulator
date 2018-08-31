@@ -88,7 +88,7 @@ def run_simulation(machine, algorithmName, numCores, numProcesses):
 #
 
 # various type of core configurations
-numCoresList = [1, 4, 8]
+numCoresList = [1, 2, 4]
 
 # number of processes in each sim
 numProcessesList = [4, 8, 16] # for statistical example
