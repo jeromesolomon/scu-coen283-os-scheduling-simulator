@@ -196,7 +196,7 @@ def create_cpu_heavy_process(name, startTime, quantum):
     return process
 
 
-def create_delivery_test(machine, numProcesses):
+def create_statistical_test(machine, numProcesses):
 
     quantum = 3
     startTime = 0

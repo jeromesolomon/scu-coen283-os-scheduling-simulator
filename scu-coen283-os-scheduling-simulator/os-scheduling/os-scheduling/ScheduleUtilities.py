@@ -9,7 +9,7 @@ Utility functions for schedule toolset
 """
 
 
-def open_output_file(fileName, ext):
+def open_output_file(algorithmName, fileName, ext):
     """
     opens an output file in the outputfile directory
     :param fileName: name of the file
@@ -19,6 +19,7 @@ def open_output_file(fileName, ext):
 
     # create a unique folder name based on date
     dirExt = datetime.datetime.today().strftime('%m_%d_%y_%H_%M_%S')
+    dirExt = algorithmName
 
     outputPath = "./output/" + dirExt
     if not os.path.exists(outputPath):
