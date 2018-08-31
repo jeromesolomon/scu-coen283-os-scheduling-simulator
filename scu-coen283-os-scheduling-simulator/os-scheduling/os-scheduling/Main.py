@@ -9,6 +9,7 @@ import RR
 import MFQ
 import FirstInFirstOut
 import FPPQMachine
+import CFS
 
 import PreemptiveMachine
 import ScheduleUtilities
@@ -36,15 +37,15 @@ machine.add(process)
 #
 
 numCores = 1
-# structure = MFQ.MFQ([RR.RR(3), RR.RR(3)])  # create the structure for the ready queue
+structure = CFS.CFS(4, 16)  # create the structure for the ready queue
 
 # machine = MachineFCFS.MachineFCFS(numCores)
 # machine = MachineRoundRobin.MachineRoundRobin(numCores)
 
 # machine = MachineShortestProcessFirst.MachineShortestProcessFirst(numCores)
 # machine = MachineShortestRemainingTimeFirst.MachineShortestRemainingTimeFirst(numCores)
-# machine = Machine2.Machine2(structure, numCores)  # pass the structure into the machine
-machine = FPPQMachine.FPPQMachine(numCores)
+machine = Machine2.Machine2(structure, numCores)  # pass the structure into the machine
+# machine = FPPQMachine.FPPQMachine(numCores)
 
 
 # runs with lecture scheduling data

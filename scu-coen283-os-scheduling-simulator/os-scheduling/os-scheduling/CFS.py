@@ -29,7 +29,7 @@ class CFS:
 
     def add(self, item):
         self.calcvruntime(item)
-        heapq.heappush((self.calcvruntime(item), item))  # push the item into the heap
+        heapq.heappush(self.heap, (self.calcvruntime(item), item.id, item))  # push the item into the heap
         item.cputime = 0  # reset cpu time for the process after it's used
         self.size += 1
         self.totalweight += self.calcweight(item)
@@ -37,14 +37,14 @@ class CFS:
     def get(self):
         result = None
         if self.size > 0:
-            result = heapq.heappop(self.heap)[1]
+            vrun, pid, result = heapq.heappop(self.heap)
             result.quantum = round(self.timeSliceSize * self.calcweight(result) / self.totalweight)
             self.size -= 1
             self.totalweight -= self.calcweight(result)
         return result
 
     def peek(self):
-        return self.heap[0][1]
+        return self.heap[0][2]
 
     def isEmpty(self):
         return self.size == 0
@@ -53,4 +53,9 @@ class CFS:
         return self.size > 0
 
     def toQueue(self):
-        return self.heap
+        result = []
+        for t in self.heap:
+            if t is not None:
+                vrun, pid,  proc = t
+                result.append(proc)
+        return result

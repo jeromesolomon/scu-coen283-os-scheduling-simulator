@@ -19,7 +19,7 @@ def create_CFS_example(machine):
         else:
             p.set_by_stats(4, 20, 5, 3, 1)  # make 2 cpu-bound processes
 
-        p.priority = i if i < 8 else 8
+        p.priority = i if i < 3 else 3
 
         processArray.append(p)
         print(p)
