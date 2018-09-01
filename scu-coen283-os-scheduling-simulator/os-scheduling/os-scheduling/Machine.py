@@ -882,6 +882,90 @@ class Machine:
 
         csvFile.write(s)
 
+    def csv_all_statistics_table_write_header(self, csvFile):
+        """
+        write a header to the csv file
+        :return:
+        """
+
+        s = ""
+
+        s += "Time,"
+
+        s += "CPU Utilization,"
+
+        s += "Throughput,"
+
+        s += "Average Turn Around Time,"
+
+        s += "Average Wait Time,"
+
+        s += "Average Response Time Time\n"
+
+        csvFile.write(s)
+
+    def csv_all_statistics_table_write(self, csvFile):
+        """
+        write a line to the csv file
+        :return:
+        """
+
+        if self.time == 0:
+            return None
+
+        s = ""
+
+        s += str(self.time) + ","
+
+        # CPU utilization
+        util = (self.cpuTimeUsed / self.time) * 100
+        s += str("%.1f" % util) + "%" + ","
+
+        # Throughput
+        n = self.number_of_processes()
+        throughput = n / self.time
+        s += str("%.4f" % throughput) + ","
+
+        # create a sorted exit list
+        sortedExit = list()
+        for p in self.exit:
+            sortedExit.append(p)
+
+        # sort the list based on the process ID
+        sortedExit.sort(key=lambda x: x.id)
+
+        # Turn Around Time
+        total = 0
+        for p in sortedExit:
+            # calculate turn around time time
+            turnAroundTime = p.statsExitQueueTimestamp - p.statsFirstTimeInReadyQueueTimestamp
+            total += turnAroundTime
+
+        average = total / n
+        s += ("%.2f" % average) + ","
+
+        # Wait Time
+        total = 0
+        for p in sortedExit:
+            # calculate wait time
+            waitTime = p.statsTotalTimeInReadyQueue
+            total += waitTime
+
+        average = total / n
+        s += ("%.2f" % average) + ","
+
+        # Response Time
+        total = 0
+        for p in sortedExit:
+            # calculate response time
+            responseTime = p.statsFirstTimeOnCPUTimestamp - p.startTime
+            total += responseTime
+
+        average = total / n
+        s += ("%.2f" % average) + "\n"
+
+        csvFile.write(s)
+
     def csv_process_info_table_write(self, csvFile):
         """
         writes the process info to a csv file

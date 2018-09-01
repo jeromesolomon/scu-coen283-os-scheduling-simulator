@@ -24,10 +24,12 @@ def run_simulation(machine, algorithmName, numCores, numProcesses):
     csvProcessTraceTableFile = ScheduleUtilities.open_output_file(algorithmName, prefix + "process_trace_table", "csv")
     csvStatsTableFile = ScheduleUtilities.open_output_file(algorithmName, prefix + "statistics_table", "csv")
     csvProcessInfoTableFile = ScheduleUtilities.open_output_file(algorithmName, prefix + "process_info_table", "csv")
+    csvAllStatsTableFile = ScheduleUtilities.open_output_file("all", prefix + "all_statistics_table", "csv")
 
     # write the csv header
     machine.csv_process_trace_table_write_header(csvProcessTraceTableFile)
     machine.csv_statistics_table_write_header(csvStatsTableFile)
+    machine.csv_all_statistics_table_write_header(csvAllStatsTableFile)
 
     #
     # start the simulation
@@ -77,10 +79,14 @@ def run_simulation(machine, algorithmName, numCores, numProcesses):
     # save the final statistics
     machine.csv_statistics_table_write(csvStatsTableFile)
 
-    # close the file
+    # append the final statistics to the all statistics table
+    machine.csv_all_statistics_table_write(csvAllStatsTableFile)
+
+    # close the output iles
     csvProcessTraceTableFile.close()
     csvStatsTableFile.close()
     csvProcessInfoTableFile.close()
+    csvAllStatsTableFile.close()
 
 
 #
