@@ -10,6 +10,18 @@ import MachineShortestRemainingTimeFirst
 import ScheduleUtilities
 import ScheduleTests
 
+# write csv files
+gDebugCSVFiles = False
+
+# print debug messages
+gDebugPrint = False
+
+# run lecture test
+gRunLectureTest = True
+
+# run statistics test
+gRunStatisticsTest = False
+
 
 def run_simulation(machine, algorithmName, numCores, numProcesses):
     """
@@ -21,15 +33,18 @@ def run_simulation(machine, algorithmName, numCores, numProcesses):
 
     # open output data files
     prefix = algorithmName + "_" + str(numCores) + "cores" + "_" + str(numProcesses) + "processes" + "_"
-    csvProcessTraceTableFile = ScheduleUtilities.open_output_file(algorithmName, prefix + "process_trace_table", "csv")
-    csvStatsTableFile = ScheduleUtilities.open_output_file(algorithmName, prefix + "statistics_table", "csv")
-    csvProcessInfoTableFile = ScheduleUtilities.open_output_file(algorithmName, prefix + "process_info_table", "csv")
-    csvAllStatsTableFile = ScheduleUtilities.open_output_file("all", prefix + "all_statistics_table", "csv")
 
-    # write the csv header
-    machine.csv_process_trace_table_write_header(csvProcessTraceTableFile)
-    machine.csv_statistics_table_write_header(csvStatsTableFile)
-    machine.csv_all_statistics_table_write_header(csvAllStatsTableFile)
+    if gDebugCSVFiles:
+        # open file
+        csvProcessTraceTableFile = ScheduleUtilities.open_output_file(algorithmName, prefix + "process_trace_table", "csv", "w")
+        csvStatsTableFile = ScheduleUtilities.open_output_file(algorithmName, prefix + "statistics_table", "csv", "w")
+        csvProcessInfoTableFile = ScheduleUtilities.open_output_file(algorithmName, prefix + "process_info_table", "csv", "w")
+
+    if gDebugCSVFiles:
+        # write the csv header
+        machine.csv_process_trace_table_write_header(csvProcessTraceTableFile)
+        machine.csv_statistics_table_write_header(csvStatsTableFile)
+
 
     #
     # start the simulation
@@ -42,25 +57,26 @@ def run_simulation(machine, algorithmName, numCores, numProcesses):
     # print("Initial machine status:")
     # print(machine)
 
-    # write table info file
-    machine.csv_process_info_table_write(csvProcessInfoTableFile)
-
-    # run the machine to completion
-    print("Running the simulation")
+    if gDebugCSVFiles:
+        # write table info file
+        machine.csv_process_info_table_write(csvProcessInfoTableFile)
 
     while machine.process_all():
 
         # print status of the machine
-        # print(machine)
+        if gDebugPrint:
+            print(machine)
 
-        # write a status line to the csv file
-        machine.csv_process_trace_table_write(csvProcessTraceTableFile)
+        if gDebugCSVFiles:
+            # write a status line to the csv file
+            machine.csv_process_trace_table_write(csvProcessTraceTableFile)
 
         # calculate statistics
         machine.calculate_statistics()
 
-        # write statistics
-        machine.csv_statistics_table_write(csvStatsTableFile)
+        if gDebugCSVFiles:
+            # write statistics
+            machine.csv_statistics_table_write(csvStatsTableFile)
 
         # process stage2 io
         machine.process_io_stage2()
@@ -68,37 +84,52 @@ def run_simulation(machine, algorithmName, numCores, numProcesses):
         # increase time
         machine.time += 1
 
-    print("Simulation done.")
-    # print the final machine status
-    # print("Final machine status:")
-    # print(machine)
+    if gDebugPrint:
+        print("Simulation done.")
+        # print the final machine status
+        # print("Final machine status:")
+        # print(machine)
 
-    # print the statistics
-    machine.print_statistics()
+    if gDebugPrint:
+        # print the statistics
+        machine.print_statistics()
 
-    # save the final statistics
-    machine.csv_statistics_table_write(csvStatsTableFile)
+    if gDebugCSVFiles:
+        # save the final statistics
+        machine.csv_statistics_table_write(csvStatsTableFile)
 
-    # append the final statistics to the all statistics table
-    machine.csv_all_statistics_table_write(csvAllStatsTableFile)
-
-    # close the output iles
-    csvProcessTraceTableFile.close()
-    csvStatsTableFile.close()
-    csvProcessInfoTableFile.close()
-    csvAllStatsTableFile.close()
+    if gDebugCSVFiles:
+        # close the output files
+        csvProcessTraceTableFile.close()
+        csvStatsTableFile.close()
+        csvProcessInfoTableFile.close()
 
 
 #
 # MAIN
 #
 
+# open all statistics file, appending to the end of it
+csvAllStatsTableFile = ScheduleUtilities.open_output_file("all", "" + "all_statistics_table", "csv", "a")
+
+# write the header for the all statistics file
+temp = MachineFCFS.MachineFCFS()
+temp.csv_all_statistics_table_write_header(csvAllStatsTableFile)
+
 # various type of core configurations
-numCoresList = [1, 2, 4]
+
+if gRunStatisticsTest:
+    numCoresList = [1, 2, 4, 8, 16, 24, 32, 48]
+
+if gRunLectureTest:
+    numCoresList = [1, 2, 4]
 
 # number of processes in each sim
-numProcessesList = [4, 8, 16] # for statistical example
-numProcessesList = [1] # for lecture example since it is defined within the lecture example
+if gRunStatisticsTest:
+    numProcessesList = [10, 100, 500, 1000, 5000]  # for statistical example
+
+if gRunLectureTest:
+    numProcessesList = [4]  # for lecture example since it is defined within the lecture example function as 4
 
 # number of type of schedule algorithms
 typeMachinesList = ["fcfs", "roundrobin", "spf", "srtf"]
@@ -144,18 +175,17 @@ for j in range(0, len(numCoresList)):
 for j in range(0, len(numCoresList)):
     for k in range(0, len(numProcessesList)):
 
+        """
         ScheduleTests.create_lecture_example(machineMatrix[0][j][k], 3)
         ScheduleTests.create_lecture_example(machineMatrix[1][j][k], 3)
         ScheduleTests.create_lecture_example(machineMatrix[2][j][k], 3)
         ScheduleTests.create_lecture_example(machineMatrix[3][j][k], 3)
-
         """
+
         ScheduleTests.create_statistical_test(machineMatrix[0][j][k], numProcessesList[k])
         ScheduleTests.create_statistical_test(machineMatrix[1][j][k], numProcessesList[k])
         ScheduleTests.create_statistical_test(machineMatrix[2][j][k], numProcessesList[k])
         ScheduleTests.create_statistical_test(machineMatrix[3][j][k], numProcessesList[k])
-        """
-
 
 # runs with lecture scheduling data
 # ScheduleTests.create_lecture_example(machine, 3)
@@ -169,14 +199,22 @@ for i in range(len(typeMachinesList)):
         for k in range(len(numProcessesList)):
 
             simName = ""
-            simName += "Running simulation with: "
+            simName += "Running simulation: "
             simName += typeMachinesList[i]
-            simName += " # of cores = " + str(numCoresList[j])
-            simName += " # of processes  = " + str(numProcessesList[k])
+            simName += " with # of cores = " + str(numCoresList[j])
+            simName += " and # of processes  = " + str(numProcessesList[k])
             print(simName)
 
             algorithmName = typeMachinesList[i]
             numCores = numCoresList[j]
             numProcesses = numProcessesList[k]
 
+            # run the simulation
             run_simulation(machineMatrix[i][j][k], algorithmName, numCores, numProcesses)
+
+            # write out the all statistics file, append the final statistics to the all statistics table
+            machineMatrix[i][j][k].csv_all_statistics_table_write( \
+                csvAllStatsTableFile, algorithmName, numCores, numProcesses)
+
+# close the all statistics file
+csvAllStatsTableFile.close()

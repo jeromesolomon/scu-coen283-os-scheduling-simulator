@@ -9,7 +9,7 @@ Utility functions for schedule toolset
 """
 
 
-def open_output_file(algorithmName, fileName, ext):
+def open_output_file(algorithmName, fileName, ext, mode):
     """
     opens an output file in the outputfile directory
     :param fileName: name of the file
@@ -28,9 +28,18 @@ def open_output_file(algorithmName, fileName, ext):
     # open a file for saving & viewing the simulation in excel
     longFileName = outputPath + "/" + fileName
 
+    # try to open the file
     theFile = None
+    theFileName = longFileName + "." + ext
+
     try:
-        theFile = open(longFileName + "." + ext, "w")
+        # remove the file if it already exists
+        if os.path.isfile(theFileName):
+            os.remove(theFileName)
+
+        # try to open the file
+        theFile = open(theFileName, mode)
+
     except IOError:
         print("ERROR: opening the file " + longFileName)
         exit(-1)

@@ -890,7 +890,13 @@ class Machine:
 
         s = ""
 
-        s += "Time,"
+        s += "Algorithm,"
+
+        s += "Number of cores,"
+
+        s += "Number of processes,"
+
+        s += "Total Time,"
 
         s += "CPU Utilization,"
 
@@ -904,7 +910,7 @@ class Machine:
 
         csvFile.write(s)
 
-    def csv_all_statistics_table_write(self, csvFile):
+    def csv_all_statistics_table_write(self, csvFile, algorithmName, numCores, numProcesses):
         """
         write a line to the csv file
         :return:
@@ -915,6 +921,16 @@ class Machine:
 
         s = ""
 
+        # algorithm
+        s += algorithmName + ","
+
+        # number of cores
+        s += str(numCores) + ","
+
+        # number of processes
+        s += str(numProcesses) + ","
+
+        # time
         s += str(self.time) + ","
 
         # CPU utilization
