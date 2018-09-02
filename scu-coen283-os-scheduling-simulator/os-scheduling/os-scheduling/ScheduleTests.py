@@ -180,7 +180,7 @@ def create_round_robin_test(machine, quantum):
     return machine
 
 
-def create_cpu_heavy_process(name, startTime, quantum):
+def create_balanced_process(name, startTime, quantum):
 
     process = Process.Process(name, startTime, quantum)
 
@@ -196,7 +196,33 @@ def create_cpu_heavy_process(name, startTime, quantum):
     return process
 
 
-def create_statistical_test(machine, numProcesses):
+def create_balanced_statistical_test(machine, numProcesses):
+
+    quantum = 3
+    startTime = 0
+
+    for i in range(0, numProcesses):
+        process = create_balanced_process("A" + str(i), startTime, quantum)
+        machine.add(process)
+
+
+def create_cpu_heavy_process(name, startTime, quantum):
+
+    process = Process.Process(name, startTime, quantum)
+
+    numBursts = random.randint(1, 10)
+    for i in range(0, numBursts):
+
+        cpu = random.randint(1, 10)
+        process.add_cpu_burst(cpu)
+
+        io = random.randint(1, 1)
+        process.add_io_burst(io)
+
+    return process
+
+
+def create_cpu_heavy_statistical_test(machine, numProcesses):
 
     quantum = 3
     startTime = 0
@@ -205,3 +231,50 @@ def create_statistical_test(machine, numProcesses):
         process = create_cpu_heavy_process("A" + str(i), startTime, quantum)
         machine.add(process)
 
+
+def create_io_heavy_process(name, startTime, quantum):
+
+    process = Process.Process(name, startTime, quantum)
+
+    numBursts = random.randint(1, 10)
+    for i in range(0, numBursts):
+
+        cpu = random.randint(1, 1)
+        process.add_cpu_burst(cpu)
+
+        io = random.randint(1, 10)
+        process.add_io_burst(io)
+
+    return process
+
+
+def create_io_heavy_statistical_test(machine, numProcesses):
+
+    quantum = 3
+    startTime = 0
+
+    for i in range(0, numProcesses):
+        process = create_io_heavy_process("A" + str(i), startTime, quantum)
+        machine.add(process)
+
+def create_cpu_only_process(name, startTime, quantum):
+
+    process = Process.Process(name, startTime, quantum)
+
+    numBursts = random.randint(1, 10)
+    for i in range(0, numBursts):
+
+        cpu = random.randint(1, 20)
+        process.add_cpu_burst(cpu)
+
+    return process
+
+
+def create_cpu_only_statistical_test(machine, numProcesses):
+
+    quantum = 3
+    startTime = 0
+
+    for i in range(0, numProcesses):
+        process = create_cpu_only_process("A" + str(i), startTime, quantum)
+        machine.add(process)

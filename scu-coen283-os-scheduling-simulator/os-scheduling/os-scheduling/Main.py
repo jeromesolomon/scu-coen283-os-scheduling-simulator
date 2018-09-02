@@ -10,18 +10,19 @@ import MachineShortestRemainingTimeFirst
 import ScheduleUtilities
 import ScheduleTests
 
-# write csv files
+# set of this variable to try to run that appropriate workload
+# lecture = prof. elkady's lecture example
+# balanced = statistical example with a balanced mixed cpu and io
+# cpu_heavy = statistical example with heavy cpu and little io
+# io_heavy = statistical example with little cpu and heavy io
+# cpu_only = statistical example with no io (just one big cpu burst)
+gWorkloadType = "cpu_only"
+
+# write csv files for each algorithm (can use a lot of disk space)
 gDebugCSVFiles = False
 
-# print debug messages
+# print detailed debug messages
 gDebugPrint = False
-
-# run lecture test
-gRunLectureTest = True
-
-# run statistics test
-gRunStatisticsTest = False
-
 
 def run_simulation(machine, algorithmName, numCores, numProcesses):
     """
@@ -110,28 +111,36 @@ def run_simulation(machine, algorithmName, numCores, numProcesses):
 #
 
 # open all statistics file, appending to the end of it
-csvAllStatsTableFile = ScheduleUtilities.open_output_file("all", "" + "all_statistics_table", "csv", "a")
+dirName = gWorkloadType + "_all"
+fileName = gWorkloadType + "_all_statistics_table"
+csvAllStatsTableFile = ScheduleUtilities.open_output_file(dirName, fileName, "csv", "a")
 
 # write the header for the all statistics file
 temp = MachineFCFS.MachineFCFS()
 temp.csv_all_statistics_table_write_header(csvAllStatsTableFile)
 
 # various type of core configurations
-
-if gRunStatisticsTest:
-    numCoresList = [1, 2, 4, 8, 16, 24, 32, 48]
-
-if gRunLectureTest:
+if gWorkloadType == "lecture":
     numCoresList = [1, 2, 4]
+    numProcessesList = [4]
 
-# number of processes in each sim
-if gRunStatisticsTest:
-    numProcessesList = [10, 100, 500, 1000, 5000]  # for statistical example
+if gWorkloadType == "balanced":
+    numCoresList = [1, 2, 4, 8, 16, 24, 32, 48]
+    numProcessesList = [10, 100, 500, 1000]
 
-if gRunLectureTest:
-    numProcessesList = [4]  # for lecture example since it is defined within the lecture example function as 4
+if gWorkloadType == "cpu_heavy":
+    numCoresList = [1, 2, 4, 8, 16, 24, 32, 48]
+    numProcessesList = [10, 100, 500, 1000]
 
-# number of type of schedule algorithms
+if gWorkloadType == "io_heavy":
+    numCoresList = [1, 2, 4, 8, 16, 24, 32, 48]
+    numProcessesList = [10, 100, 500, 1000]
+
+if gWorkloadType == "cpu_only":
+    numCoresList = [1, 2, 4, 8, 16, 24, 32, 48]
+    numProcessesList = [10, 100, 500, 1000]
+
+# the type of schedule algorithms
 typeMachinesList = ["fcfs", "roundrobin", "spf", "srtf"]
 numTypeMachines = len(typeMachinesList)
 
@@ -175,17 +184,35 @@ for j in range(0, len(numCoresList)):
 for j in range(0, len(numCoresList)):
     for k in range(0, len(numProcessesList)):
 
-        """
-        ScheduleTests.create_lecture_example(machineMatrix[0][j][k], 3)
-        ScheduleTests.create_lecture_example(machineMatrix[1][j][k], 3)
-        ScheduleTests.create_lecture_example(machineMatrix[2][j][k], 3)
-        ScheduleTests.create_lecture_example(machineMatrix[3][j][k], 3)
-        """
+        if gWorkloadType == "lecture":
+            ScheduleTests.create_lecture_example(machineMatrix[0][j][k], 3)
+            ScheduleTests.create_lecture_example(machineMatrix[1][j][k], 3)
+            ScheduleTests.create_lecture_example(machineMatrix[2][j][k], 3)
+            ScheduleTests.create_lecture_example(machineMatrix[3][j][k], 3)
 
-        ScheduleTests.create_statistical_test(machineMatrix[0][j][k], numProcessesList[k])
-        ScheduleTests.create_statistical_test(machineMatrix[1][j][k], numProcessesList[k])
-        ScheduleTests.create_statistical_test(machineMatrix[2][j][k], numProcessesList[k])
-        ScheduleTests.create_statistical_test(machineMatrix[3][j][k], numProcessesList[k])
+        if gWorkloadType == "balanced":
+            ScheduleTests.create_balanced_statistical_test(machineMatrix[0][j][k], numProcessesList[k])
+            ScheduleTests.create_balanced_statistical_test(machineMatrix[1][j][k], numProcessesList[k])
+            ScheduleTests.create_balanced_statistical_test(machineMatrix[2][j][k], numProcessesList[k])
+            ScheduleTests.create_balanced_statistical_test(machineMatrix[3][j][k], numProcessesList[k])
+
+        if gWorkloadType == "cpu_heavy":
+            ScheduleTests.create_cpu_heavy_statistical_test(machineMatrix[0][j][k], numProcessesList[k])
+            ScheduleTests.create_cpu_heavy_statistical_test(machineMatrix[1][j][k], numProcessesList[k])
+            ScheduleTests.create_cpu_heavy_statistical_test(machineMatrix[2][j][k], numProcessesList[k])
+            ScheduleTests.create_cpu_heavy_statistical_test(machineMatrix[3][j][k], numProcessesList[k])
+
+        if gWorkloadType == "io_heavy":
+            ScheduleTests.create_io_heavy_statistical_test(machineMatrix[0][j][k], numProcessesList[k])
+            ScheduleTests.create_io_heavy_statistical_test(machineMatrix[1][j][k], numProcessesList[k])
+            ScheduleTests.create_io_heavy_statistical_test(machineMatrix[2][j][k], numProcessesList[k])
+            ScheduleTests.create_io_heavy_statistical_test(machineMatrix[3][j][k], numProcessesList[k])
+
+        if gWorkloadType == "cpu_only":
+            ScheduleTests.create_io_heavy_statistical_test(machineMatrix[0][j][k], numProcessesList[k])
+            ScheduleTests.create_io_heavy_statistical_test(machineMatrix[1][j][k], numProcessesList[k])
+            ScheduleTests.create_io_heavy_statistical_test(machineMatrix[2][j][k], numProcessesList[k])
+            ScheduleTests.create_io_heavy_statistical_test(machineMatrix[3][j][k], numProcessesList[k])
 
 # runs with lecture scheduling data
 # ScheduleTests.create_lecture_example(machine, 3)
@@ -200,12 +227,13 @@ for i in range(len(typeMachinesList)):
 
             simName = ""
             simName += "Running simulation: "
+            simName += gWorkloadType + "_"
             simName += typeMachinesList[i]
             simName += " with # of cores = " + str(numCoresList[j])
             simName += " and # of processes  = " + str(numProcessesList[k])
             print(simName)
 
-            algorithmName = typeMachinesList[i]
+            algorithmName = gWorkloadType + "_" + typeMachinesList[i]
             numCores = numCoresList[j]
             numProcesses = numProcessesList[k]
 
