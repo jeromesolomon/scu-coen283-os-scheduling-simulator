@@ -209,10 +209,10 @@ for j in range(0, len(numCoresList)):
             ScheduleTests.create_io_heavy_statistical_test(machineMatrix[3][j][k], numProcessesList[k])
 
         if gWorkloadType == "cpu_only":
-            ScheduleTests.create_io_heavy_statistical_test(machineMatrix[0][j][k], numProcessesList[k])
-            ScheduleTests.create_io_heavy_statistical_test(machineMatrix[1][j][k], numProcessesList[k])
-            ScheduleTests.create_io_heavy_statistical_test(machineMatrix[2][j][k], numProcessesList[k])
-            ScheduleTests.create_io_heavy_statistical_test(machineMatrix[3][j][k], numProcessesList[k])
+            ScheduleTests.create_cpu_only_statistical_test(machineMatrix[0][j][k], numProcessesList[k])
+            ScheduleTests.create_cpu_only_statistical_test(machineMatrix[1][j][k], numProcessesList[k])
+            ScheduleTests.create_cpu_only_statistical_test(machineMatrix[2][j][k], numProcessesList[k])
+            ScheduleTests.create_cpu_only_statistical_test(machineMatrix[3][j][k], numProcessesList[k])
 
 # runs with lecture scheduling data
 # ScheduleTests.create_lecture_example(machine, 3)
