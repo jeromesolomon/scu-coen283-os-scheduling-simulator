@@ -16,10 +16,10 @@ import ScheduleTests
 # cpu_heavy = statistical example with heavy cpu and little io
 # io_heavy = statistical example with little cpu and heavy io
 # cpu_only = statistical example with no io (just one big cpu burst)
-gWorkloadType = "cpu_only"
+gWorkloadType = "lecture"
 
 # write csv files for each algorithm (can use a lot of disk space)
-gDebugCSVFiles = False
+gDebugCSVFiles = True
 
 # print detailed debug messages
 gDebugPrint = False
