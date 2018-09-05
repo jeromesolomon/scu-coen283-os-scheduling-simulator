@@ -772,6 +772,34 @@ class Machine2:
 
         csvFile.write(s)
 
+    def csv_all_statistics_table_write_header(self, csvFile):
+        """
+        write a header to the csv file
+        :return:
+        """
+
+        s = ""
+
+        s += "Algorithm,"
+
+        s += "Number of cores,"
+
+        s += "Number of processes,"
+
+        s += "Total Time,"
+
+        s += "CPU Utilization,"
+
+        s += "Throughput,"
+
+        s += "Average Turn Around Time,"
+
+        s += "Average Wait Time,"
+
+        s += "Average Response Time Time\n"
+
+        csvFile.write(s)
+
     def csv_statistics_table_write(self, csvFile):
         """
         write a line to the csv file
@@ -886,6 +914,7 @@ class Machine2:
         s += ""
 
         return s
+
     def csv_process_info_table_write(self, csvFile):
         """
         writes the process info to a csv file
