@@ -48,7 +48,7 @@ def create_lecture_example(machine, quantum):
     quantum = 3
 
     # process A
-    processA = Process.Process("A", 0, quantum)
+    processA = Process.Process("A", 0, quantum, priority=5)
 
     processA.add_cpu_burst(4)
     processA.add_io_burst(4)
@@ -59,7 +59,7 @@ def create_lecture_example(machine, quantum):
     machine.add(processA)
 
     # process B
-    processB = Process.Process("B", 2, quantum)
+    processB = Process.Process("B", 2, quantum, priority=10)
 
     processB.add_cpu_burst(8)
     processB.add_io_burst(1)
@@ -68,7 +68,7 @@ def create_lecture_example(machine, quantum):
     machine.add(processB)
 
     # process C
-    processC = Process.Process("C", 3, quantum)
+    processC = Process.Process("C", 3, quantum, priority=1)
 
     processC.add_cpu_burst(2)
     processC.add_io_burst(1)
@@ -77,7 +77,7 @@ def create_lecture_example(machine, quantum):
     machine.add(processC)
 
     # process D
-    processD = Process.Process("D", 7, quantum)
+    processD = Process.Process("D", 7, quantum, priority=0)
 
     processD.add_cpu_burst(1)
     processD.add_io_burst(1)
@@ -209,16 +209,20 @@ def create_round_robin_test(machine, quantum):
 def create_balanced_process(name, startTime, quantum):
 
     process = Process.Process(name, startTime, quantum)
+    cpuTotal = 0
+    ioTotal = 0
 
     numBursts = random.randint(1, 10)
     for i in range(0, numBursts):
 
         cpu = random.randint(1, 10)
         process.add_cpu_burst(cpu)
+        cpuTotal += cpu
 
         io = random.randint(1, 5)
         process.add_io_burst(io)
-
+        ioTotal += io
+    process.priority = 20 * cpuTotal / (cpuTotal + ioTotal)  # define priority to be proportional to cpu time %
     return process
 
 
@@ -235,16 +239,20 @@ def create_balanced_statistical_test(machine, numProcesses):
 def create_cpu_heavy_process(name, startTime, quantum):
 
     process = Process.Process(name, startTime, quantum)
+    cpuTotal = 0
+    ioTotal = 0
 
     numBursts = random.randint(1, 10)
     for i in range(0, numBursts):
 
         cpu = random.randint(1, 10)
         process.add_cpu_burst(cpu)
+        cpuTotal += cpu
 
         io = random.randint(1, 1)
         process.add_io_burst(io)
-
+        ioTotal += io
+    process.priority = 20 * cpuTotal / (cpuTotal + ioTotal)  # define priority to be proportional to cpu time %
     return process
 
 
@@ -261,16 +269,20 @@ def create_cpu_heavy_statistical_test(machine, numProcesses):
 def create_io_heavy_process(name, startTime, quantum):
 
     process = Process.Process(name, startTime, quantum)
+    cpuTotal = 0
+    ioTotal = 0
 
     numBursts = random.randint(1, 10)
     for i in range(0, numBursts):
 
         cpu = random.randint(1, 1)
         process.add_cpu_burst(cpu)
+        cpuTotal += cpu
 
         io = random.randint(1, 10)
         process.add_io_burst(io)
-
+        ioTotal += io
+    process.priority = 20 * cpuTotal / (cpuTotal + ioTotal)  # define priority to be proportional to cpu time %
     return process
 
 

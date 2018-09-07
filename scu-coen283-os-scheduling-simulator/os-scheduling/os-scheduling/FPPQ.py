@@ -57,7 +57,7 @@ class FPPQ:
         result = []
         for x in self.heap:
             priority, id, process = x
-            if result is not None:
+            if process is not None:
                 result.append(process)
 
         return result

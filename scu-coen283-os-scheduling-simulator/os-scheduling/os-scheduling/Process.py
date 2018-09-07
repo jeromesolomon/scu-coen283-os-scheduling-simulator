@@ -10,7 +10,7 @@ class Process:
     # global process id variable (start process IDs at 100)
     globalProcessID = 100
 
-    def __init__(self, name, startTime, quantum):
+    def __init__(self, name, startTime, quantum, priority=0):
         # this represents the process beginning at the new state
 
         # assign a unique process ID
@@ -34,7 +34,7 @@ class Process:
 
         # process priority (used for priority queue, multilevel [feedback] queue)
         # priority always starts high unless otherwise noted.
-        self.priority = 0
+        self.priority = priority
 
         # support for scheduling algorithms
         # time on CPU for the current burst.  Used for round robin scheduling algorithm
