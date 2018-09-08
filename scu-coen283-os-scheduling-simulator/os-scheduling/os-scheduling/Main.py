@@ -118,135 +118,216 @@ def run_simulation(machine, algorithmName, numCores, numProcesses):
         csvProcessInfoTableFile.close()
 
 
+def run_all_simulations(numCoresList, numProcessesList):
+    """
+    sets up and runs all the simulations
+    :return:
+    """
+
+    # open all statistics file, appending to the end of it
+    dirName = gWorkloadType + "_all"
+    fileName = gWorkloadType + "_all_statistics_table"
+    csvAllStatsTableFile = ScheduleUtilities.open_output_file(dirName, fileName, "csv", "a")
+
+    # write the header for the all statistics file
+    temp = MachineFCFS.MachineFCFS()
+    temp.csv_all_statistics_table_write_header(csvAllStatsTableFile)
+
+    # the type of schedule algorithms
+    typeMachinesList = ["fcfs", "roundrobin", "spf", "srtf", "CFS", "FPPQ"]
+    numTypeMachines = len(typeMachinesList)
+
+    # 3 dimensional array
+    machineMatrix = [[[None for k in range(len(numProcessesList))] for j in range(len(numCoresList))] for i in range(len(typeMachinesList))]
+
+    # print(machineMatrix)
+
+    """
+    for i in range(len(typeMachinesList)):
+        for j in range(len(numCoresList)):
+            for k in range(len(numProcessesList)):
+                print(machineMatrix[i][j][k])
+    """
+
+    #
+    # create all the machines and add them to the matrix
+    #
+    for j in range(0, len(numCoresList)):
+        for k in range(0, len(numProcessesList)):
+
+            # add machines of each type to the matrix
+
+            # FCFS
+            machineMatrix[0][j][k] = MachineFCFS.MachineFCFS(numCoresList[j])
+
+            # Round Robin
+            machineMatrix[1][j][k] = MachineRoundRobin.MachineRoundRobin(numCoresList[j])
+
+            # SPF
+            machineMatrix[2][j][k] = MachineShortestProcessFirst.MachineShortestProcessFirst(numCoresList[j])
+
+            # SRTF
+            machineMatrix[3][j][k] = MachineShortestRemainingTimeFirst.MachineShortestRemainingTimeFirst(numCoresList[j])
+
+            # CFS
+            machineMatrix[4][j][k] = PreemptiveMachine.PreemptiveMachine(CFS.CFS(20,16), numCoresList[j])
+
+            # FPPQ
+            machineMatrix[5][j][k] = FPPQMachine.FPPQMachine(numCoresList[j])
+
+    # print(machineMatrix)
+
+    #
+    # create process test cases
+    #
+    for j in range(0, len(numCoresList)):
+        for k in range(0, len(numProcessesList)):
+
+            if gWorkloadType == "lecture":
+                for i in range(0, len(typeMachinesList)):
+                    ScheduleTests.create_lecture_example(machineMatrix[i][j][k], 3)
+
+            if gWorkloadType == "balanced":
+                for i in range(0, len(typeMachinesList)):
+                    ScheduleTests.create_balanced_statistical_test(machineMatrix[i][j][k], numProcessesList[k])
+
+            if gWorkloadType == "cpu_heavy":
+                for i in range(0, len(typeMachinesList)):
+                    ScheduleTests.create_cpu_heavy_statistical_test(machineMatrix[i][j][k], numProcessesList[k])
+
+            if gWorkloadType == "io_heavy":
+                for i in range(0, len(typeMachinesList)):
+                    ScheduleTests.create_io_heavy_statistical_test(machineMatrix[i][j][k], numProcessesList[k])
+
+            if gWorkloadType == "cpu_only":
+                for i in range(0, len(typeMachinesList)):
+                    ScheduleTests.create_cpu_only_statistical_test(machineMatrix[i][j][k], numProcessesList[k])
+
+    #
+    # run all the simulations
+    #
+    for i in range(len(typeMachinesList)):
+        for j in range(len(numCoresList)):
+            for k in range(len(numProcessesList)):
+
+                simName = ""
+                simName += "Running simulation: "
+                simName += gWorkloadType + "_"
+                simName += typeMachinesList[i]
+                simName += " with # of cores = " + str(numCoresList[j])
+                simName += " and # of processes  = " + str(numProcessesList[k])
+                print(simName)
+
+                algorithmName = gWorkloadType + "_" + typeMachinesList[i]
+                numCores = numCoresList[j]
+                numProcesses = numProcessesList[k]
+
+                # run the simulation
+                run_simulation(machineMatrix[i][j][k], algorithmName, numCores, numProcesses)
+
+                # write out the all statistics file, append the final statistics to the all statistics table
+                machineMatrix[i][j][k].csv_all_statistics_table_write(
+                    csvAllStatsTableFile, algorithmName, numCores, numProcesses)
+
+    # close the all statistics file
+    csvAllStatsTableFile.close()
+
+def print_menu():
+    print("--------------------------------------------------------------------")
+    print("OS Scheduling Algorithms Simulator")
+    print("--------------------------------------------------------------------")
+    print("Workload types:")
+    print("\t[L] Lecture - using Prof. Amr Elkady's lecture example")
+    print("\t[B] Balanced = statistical example with a balanced mixed cpu and io")
+    print("\t[C] Cpu heavy = statistical example with heavy cpu and little io")
+    print("\t[I] Io heavy = statistical example with little cpu and heavy io")
+    print("\t[O] cpu Only = statistical example with no io (just one big cpu burst)")
+    print("--------------------------------------------------------------------")
+    print("Simulation settings:")
+    print("\tWorkload type = " + gWorkloadType)
+    print("\t[1] CPU cores: " + str(numCoresList))
+    print("\t[2] Number of processes: " + str(numProcessesList))
+    print("\t[3] Save csv files for each algorithm = " + str(gDebugCSVFiles))
+    print("\t[4] Resets the settings")
+    print("")
+
+
+def get_new_list(l):
+
+    nums = input("Enter a list of numbers (separated by space):")
+    temp = nums.split()
+
+    newList = []
+
+    for x in temp:
+        newList.append(int(x))
+
+    return newList
+
 #
 # MAIN
 #
 
-# open all statistics file, appending to the end of it
-dirName = gWorkloadType + "_all"
-fileName = gWorkloadType + "_all_statistics_table"
-csvAllStatsTableFile = ScheduleUtilities.open_output_file(dirName, fileName, "csv", "a")
+# basic text UI
 
-# write the header for the all statistics file
-temp = MachineFCFS.MachineFCFS()
-temp.csv_all_statistics_table_write_header(csvAllStatsTableFile)
+# set of this variable to try to run that appropriate workload
+# lecture = prof. elkady's lecture example
+# balanced = statistical example with a balanced mixed cpu and io
+# cpu_heavy = statistical example with heavy cpu and little io
+# io_heavy = statistical example with little cpu and heavy io
+# cpu_only = statistical example with no io (just one big cpu burst)
+gWorkloadType = "balanced"
 
-# various type of core configurations
-if gWorkloadType == "lecture":
-    numCoresList = [1, 2, 4]
-    numProcessesList = [4]
+# write csv files for each algorithm (can use a lot of disk space)
+gDebugCSVFiles = False
 
-if gWorkloadType == "balanced":
-    numCoresList = [1, 2, 4, 8, 16, 24, 32, 48]
-    numProcessesList = [10, 100, 500, 1000]
+# print detailed debug messages
+gDebugPrint = False
 
-if gWorkloadType == "cpu_heavy":
-    numCoresList = [1, 2, 4, 8, 16, 24, 32, 48]
-    numProcessesList = [10, 100, 500, 1000]
+numCoresList = [1, 2, 4, 8, 16, 24, 32, 48]
+numProcessesList = [10, 100, 500, 1000]
 
-if gWorkloadType == "io_heavy":
-    numCoresList = [1, 2, 4, 8, 16, 24, 32, 48]
-    numProcessesList = [10, 100, 500, 1000]
+choice = ""
+while choice != "q":
+    print_menu()
 
-if gWorkloadType == "cpu_only":
-    numCoresList = [1, 2, 4, 8, 16, 24, 32, 48]
-    numProcessesList = [10, 100, 500, 1000]
+    choice = input("[L,B,C,I,O] workload, 1-4 settings, R to run, Q to quit]:")
+    choice = choice.lower()
 
-# the type of schedule algorithms
-typeMachinesList = ["fcfs", "roundrobin", "spf", "srtf", "CFS", "FPPQ"]
-numTypeMachines = len(typeMachinesList)
+    # handle workload choices
+    if choice == "l":
+        gWorkloadType = "lecture"
 
-# 3 dimensional array
-machineMatrix = [[[None for k in range(len(numProcessesList))] for j in range(len(numCoresList))] for i in range(len(typeMachinesList))]
+    if choice == "b":
+        gWorkloadType = "balanced"
+    if choice == "c":
+        gWorkloadType = "cpu_heavy"
+    if choice == "i":
+        gWorkloadType = "io_heavy"
+    if choice == "o":
+        gWorkloadType = "cpu_only"
 
-# print(machineMatrix)
+    # cpu cores
+    if choice == "1":
+        numCoresList = get_new_list(numCoresList)
 
-"""
-for i in range(len(typeMachinesList)):
-    for j in range(len(numCoresList)):
-        for k in range(len(numProcessesList)):
-            print(machineMatrix[i][j][k])
-"""
+    if choice == "2":
+        numProcessesList = get_new_list(numProcessesList)
 
-#
-# create all the machines and add them to the matrix
-#
-for j in range(0, len(numCoresList)):
-    for k in range(0, len(numProcessesList)):
+    # toggle csv file saving
+    if choice == "3":
+        gDebugCSVFiles = not gDebugCSVFiles
 
-        # add machines of each type to the matrix
+    # reset settings
+    if choice == "4":
+        numCoresList = [1, 2, 4, 8, 16, 24, 32, 48]
+        numProcessesList = [10, 100, 500, 1000]
+        gWorkloadType = "balanced"
 
-        # FCFS
-        machineMatrix[0][j][k] = MachineFCFS.MachineFCFS(numCoresList[j])
+    if choice == "r":
 
-        # Round Robin
-        machineMatrix[1][j][k] = MachineRoundRobin.MachineRoundRobin(numCoresList[j])
-
-        # SPF
-        machineMatrix[2][j][k] = MachineShortestProcessFirst.MachineShortestProcessFirst(numCoresList[j])
-
-        # SRTF
-        machineMatrix[3][j][k] = MachineShortestRemainingTimeFirst.MachineShortestRemainingTimeFirst(numCoresList[j])
-
-        # CFS
-        machineMatrix[4][j][k] = PreemptiveMachine.PreemptiveMachine(CFS.CFS(20,16), numCoresList[j])
-
-        # FPPQ
-        machineMatrix[5][j][k] = FPPQMachine.FPPQMachine(numCoresList[j])
-
-# print(machineMatrix)
-
-#
-# create process test cases
-#
-for j in range(0, len(numCoresList)):
-    for k in range(0, len(numProcessesList)):
-
+        # lecture example has 4 processes
         if gWorkloadType == "lecture":
-            for i in range(0, len(typeMachinesList)):
-                ScheduleTests.create_lecture_example(machineMatrix[i][j][k], 3)
+            numProcessesList = [4]
 
-        if gWorkloadType == "balanced":
-            for i in range(0, len(typeMachinesList)):
-                ScheduleTests.create_balanced_statistical_test(machineMatrix[i][j][k], numProcessesList[k])
-
-        if gWorkloadType == "cpu_heavy":
-            for i in range(0, len(typeMachinesList)):
-                ScheduleTests.create_cpu_heavy_statistical_test(machineMatrix[i][j][k], numProcessesList[k])
-
-        if gWorkloadType == "io_heavy":
-            for i in range(0, len(typeMachinesList)):
-                ScheduleTests.create_io_heavy_statistical_test(machineMatrix[i][j][k], numProcessesList[k])
-
-        if gWorkloadType == "cpu_only":
-            for i in range(0, len(typeMachinesList)):
-                ScheduleTests.create_cpu_only_statistical_test(machineMatrix[i][j][k], numProcessesList[k])
-
-#
-# run all the simulations
-#
-for i in range(len(typeMachinesList)):
-    for j in range(len(numCoresList)):
-        for k in range(len(numProcessesList)):
-
-            simName = ""
-            simName += "Running simulation: "
-            simName += gWorkloadType + "_"
-            simName += typeMachinesList[i]
-            simName += " with # of cores = " + str(numCoresList[j])
-            simName += " and # of processes  = " + str(numProcessesList[k])
-            print(simName)
-
-            algorithmName = gWorkloadType + "_" + typeMachinesList[i]
-            numCores = numCoresList[j]
-            numProcesses = numProcessesList[k]
-
-            # run the simulation
-            run_simulation(machineMatrix[i][j][k], algorithmName, numCores, numProcesses)
-
-            # write out the all statistics file, append the final statistics to the all statistics table
-            machineMatrix[i][j][k].csv_all_statistics_table_write(
-                csvAllStatsTableFile, algorithmName, numCores, numProcesses)
-
-# close the all statistics file
-csvAllStatsTableFile.close()
+        run_all_simulations(numCoresList, numProcessesList)
