@@ -1,6 +1,0 @@
-Name,ID,Arrival Time,	Burst 0 Type,Burst 0 Value,Burst 1 Type,Burst 1 Value,Burst 2 Type,Burst 2 Value,Burst 3 Type,Burst 3 Value,Burst 4 Type,Burst 4 Value,Burst 5 Type,Burst 5 Value,Burst 6 Type,Burst 6 Value,Burst 7 Type,Burst 7 Value,Burst 8 Type,Burst 8 Value,Burst 9 Type,Burst 9 Value,Burst 10 Type,Burst 10 Value,Burst 11 Type,Burst 11 Value,Burst 12 Type,Burst 12 Value,Burst 13 Type,Burst 13 Value,Burst 14 Type,Burst 14 Value,Burst 15 Type,Burst 15 Value,Burst 16 Type,Burst 16 Value,Burst 17 Type,Burst 17 Value,Burst 18 Type,Burst 18 Value
-p2,100,0,cpu,1,io,10,cpu,1,io,11,cpu,1,io,11,cpu,2,io,11,cpu,2,io,10,cpu,1,io,11,cpu,1,io,8,cpu,1,io,10,cpu,2,io,13,cpu,2,
-p0,101,2,cpu,1,io,11,cpu,1,io,10,cpu,1,io,10,cpu,1,io,10,cpu,2,io,11,cpu,2,io,10,cpu,2,io,10,cpu,1,io,10,cpu,1,io,13,cpu,1,
-p4,102,4,cpu,22,io,2,cpu,18,io,4,cpu,19,io,2,cpu,15,
-p1,103,6,cpu,2,io,11,cpu,2,io,9,cpu,1,io,10,cpu,3,io,10,cpu,1,io,9,cpu,2,io,8,cpu,1,io,10,cpu,2,io,8,cpu,1,io,8,cpu,2,
-p3,104,8,cpu,1,io,9,cpu,1,io,10,cpu,1,io,11,cpu,1,io,11,cpu,1,io,10,cpu,1,io,11,cpu,1,io,10,cpu,1,io,10,cpu,1,io,10,cpu,1,

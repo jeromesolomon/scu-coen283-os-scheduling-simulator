@@ -1,0 +1,5 @@
+Name,ID,Arrival Time,	Burst 0 Type,Burst 0 Value,Burst 1 Type,Burst 1 Value,Burst 2 Type,Burst 2 Value,Burst 3 Type,Burst 3 Value,Burst 4 Type,Burst 4 Value
+A,156,0,cpu,4,io,4,cpu,4,io,4,cpu,4,
+B,157,2,cpu,8,io,1,cpu,8,
+C,158,3,cpu,2,io,1,cpu,2,
+D,159,7,cpu,1,io,1,cpu,1,io,1,cpu,1,
