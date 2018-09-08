@@ -3,22 +3,10 @@ import datetime
 
 import Process
 import Machine
-import Machine2
-
 import MachineFCFS
 import MachineRoundRobin
 import MachineShortestProcessFirst
 import MachineShortestRemainingTimeFirst
-import ScheduleUtilities
-import ScheduleTests
-import RR
-import MFQ
-import FirstInFirstOut
-import FPPQMachine
-import CFS
-import FPPQ
-
-import PreemptiveMachine
 import ScheduleUtilities
 import ScheduleTests
 
@@ -28,14 +16,13 @@ import ScheduleTests
 # cpu_heavy = statistical example with heavy cpu and little io
 # io_heavy = statistical example with little cpu and heavy io
 # cpu_only = statistical example with no io (just one big cpu burst)
-gWorkloadType = "balanced"
+gWorkloadType = "lecture"
 
 # write csv files for each algorithm (can use a lot of disk space)
-gDebugCSVFiles = False
+gDebugCSVFiles = True
 
 # print detailed debug messages
 gDebugPrint = False
-
 
 def run_simulation(machine, algorithmName, numCores, numProcesses):
     """
@@ -58,6 +45,7 @@ def run_simulation(machine, algorithmName, numCores, numProcesses):
         # write the csv header
         machine.csv_process_trace_table_write_header(csvProcessTraceTableFile)
         machine.csv_statistics_table_write_header(csvStatsTableFile)
+
 
     #
     # start the simulation
@@ -153,13 +141,13 @@ if gWorkloadType == "cpu_only":
     numProcessesList = [10, 100, 500, 1000]
 
 # the type of schedule algorithms
-typeMachinesList = ["fcfs", "roundrobin", "spf", "srtf", "CFS", "FPPQ"]
+typeMachinesList = ["fcfs", "roundrobin", "spf", "srtf"]
 numTypeMachines = len(typeMachinesList)
 
 # 3 dimensional array
 machineMatrix = [[[None for k in range(len(numProcessesList))] for j in range(len(numCoresList))] for i in range(len(typeMachinesList))]
 
-# print(machineMatrix)
+#print(machineMatrix)
 
 """
 for i in range(len(typeMachinesList)):
@@ -188,13 +176,7 @@ for j in range(0, len(numCoresList)):
         # SRTF
         machineMatrix[3][j][k] = MachineShortestRemainingTimeFirst.MachineShortestRemainingTimeFirst(numCoresList[j])
 
-        # CFS
-        machineMatrix[4][j][k] = PreemptiveMachine.PreemptiveMachine(CFS.CFS(20,16), numCoresList[j])
-
-        # FPPQ
-        machineMatrix[5][j][k] = FPPQMachine.FPPQMachine(numCoresList[j])
-
-# print(machineMatrix)
+#print(machineMatrix)
 
 #
 # create process test cases
@@ -203,24 +185,38 @@ for j in range(0, len(numCoresList)):
     for k in range(0, len(numProcessesList)):
 
         if gWorkloadType == "lecture":
-            for i in range(0, 6):
-                ScheduleTests.create_lecture_example(machineMatrix[i][j][k], 3)
+            ScheduleTests.create_lecture_example(machineMatrix[0][j][k], 3)
+            ScheduleTests.create_lecture_example(machineMatrix[1][j][k], 3)
+            ScheduleTests.create_lecture_example(machineMatrix[2][j][k], 3)
+            ScheduleTests.create_lecture_example(machineMatrix[3][j][k], 3)
 
         if gWorkloadType == "balanced":
-            for i in range(0, 6):
-                ScheduleTests.create_balanced_statistical_test(machineMatrix[i][j][k], numProcessesList[k])
+            ScheduleTests.create_balanced_statistical_test(machineMatrix[0][j][k], numProcessesList[k])
+            ScheduleTests.create_balanced_statistical_test(machineMatrix[1][j][k], numProcessesList[k])
+            ScheduleTests.create_balanced_statistical_test(machineMatrix[2][j][k], numProcessesList[k])
+            ScheduleTests.create_balanced_statistical_test(machineMatrix[3][j][k], numProcessesList[k])
 
         if gWorkloadType == "cpu_heavy":
-            for i in range(0, 6):
-                ScheduleTests.create_cpu_heavy_statistical_test(machineMatrix[i][j][k], numProcessesList[k])
+            ScheduleTests.create_cpu_heavy_statistical_test(machineMatrix[0][j][k], numProcessesList[k])
+            ScheduleTests.create_cpu_heavy_statistical_test(machineMatrix[1][j][k], numProcessesList[k])
+            ScheduleTests.create_cpu_heavy_statistical_test(machineMatrix[2][j][k], numProcessesList[k])
+            ScheduleTests.create_cpu_heavy_statistical_test(machineMatrix[3][j][k], numProcessesList[k])
 
         if gWorkloadType == "io_heavy":
-            for i in range(0, 6):
-                ScheduleTests.create_io_heavy_statistical_test(machineMatrix[i][j][k], numProcessesList[k])
+            ScheduleTests.create_io_heavy_statistical_test(machineMatrix[0][j][k], numProcessesList[k])
+            ScheduleTests.create_io_heavy_statistical_test(machineMatrix[1][j][k], numProcessesList[k])
+            ScheduleTests.create_io_heavy_statistical_test(machineMatrix[2][j][k], numProcessesList[k])
+            ScheduleTests.create_io_heavy_statistical_test(machineMatrix[3][j][k], numProcessesList[k])
 
         if gWorkloadType == "cpu_only":
-            for i in range(0, 6):
-                ScheduleTests.create_cpu_only_statistical_test(machineMatrix[i][j][k], numProcessesList[k])
+            ScheduleTests.create_cpu_only_statistical_test(machineMatrix[0][j][k], numProcessesList[k])
+            ScheduleTests.create_cpu_only_statistical_test(machineMatrix[1][j][k], numProcessesList[k])
+            ScheduleTests.create_cpu_only_statistical_test(machineMatrix[2][j][k], numProcessesList[k])
+            ScheduleTests.create_cpu_only_statistical_test(machineMatrix[3][j][k], numProcessesList[k])
+
+# runs with lecture scheduling data
+# ScheduleTests.create_lecture_example(machine, 3)
+# ScheduleTests.create_statistical_test(machine, 8)
 
 #
 # run all the simulations
@@ -245,7 +241,7 @@ for i in range(len(typeMachinesList)):
             run_simulation(machineMatrix[i][j][k], algorithmName, numCores, numProcesses)
 
             # write out the all statistics file, append the final statistics to the all statistics table
-            machineMatrix[i][j][k].csv_all_statistics_table_write(
+            machineMatrix[i][j][k].csv_all_statistics_table_write( \
                 csvAllStatsTableFile, algorithmName, numCores, numProcesses)
 
 # close the all statistics file
