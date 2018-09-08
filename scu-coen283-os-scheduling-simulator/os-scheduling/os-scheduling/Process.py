@@ -10,7 +10,7 @@ class Process:
     # global process id variable (start process IDs at 100)
     globalProcessID = 100
 
-    def __init__(self, name, startTime, quantum):
+    def __init__(self, name, startTime, quantum, priority=0):
         # this represents the process beginning at the new state
 
         # assign a unique process ID
@@ -34,13 +34,19 @@ class Process:
 
         # process priority (used for priority queue, multilevel [feedback] queue)
         # priority always starts high unless otherwise noted.
-        self.priority = 0
+        self.priority = priority
 
         # support for scheduling algorithms
         # time on CPU for the current burst.  Used for round robin scheduling algorithm
         self.timeOnCPUCurrentBurst = 0
 
+        #support for CFS
+        self.vruntime = None
+        self.cputime = 0
+
         # statistics
+
+        self.statsFirstTimeInReadyQueue = True
         
         # turn around time stats & response time stats
         self.statsFirstTimeInReadyQueueTimestamp = 0
@@ -76,9 +82,9 @@ class Process:
 
         for i in range(numBursts):
             # generate a random time statistically for both process burst time and io time
-            self.add_cpu_burst(int(round(np.random.normal(burstMean, burstSD))))
+            self.add_cpu_burst(max(1, int(round(np.random.normal(burstMean, burstSD)))))
             if i < numBursts-1:
-                self.add_io_burst(int(round(np.random.normal(ioMean, ioSD))))
+                self.add_io_burst(max(1, int(round(np.random.normal(ioMean, ioSD)))))
 
     def add_cpu_burst(self, cpuBurst):
         """
@@ -107,6 +113,7 @@ class Process:
         result += " "
         result += "{"
         result += "name = " + str(self.name) + ", "
+        result += "quantum =" + str(self.quantum) + ", "
         result += "start time = " + str(self.startTime) + ", "
         result += "bursts = " + str(self.bursts)
         result += "}"
