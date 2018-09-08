@@ -203,23 +203,23 @@ for j in range(0, len(numCoresList)):
     for k in range(0, len(numProcessesList)):
 
         if gWorkloadType == "lecture":
-            for i in range(0, 6):
+            for i in range(0, len(typeMachinesList)):
                 ScheduleTests.create_lecture_example(machineMatrix[i][j][k], 3)
 
         if gWorkloadType == "balanced":
-            for i in range(0, 6):
+            for i in range(0, len(typeMachinesList)):
                 ScheduleTests.create_balanced_statistical_test(machineMatrix[i][j][k], numProcessesList[k])
 
         if gWorkloadType == "cpu_heavy":
-            for i in range(0, 6):
+            for i in range(0, len(typeMachinesList)):
                 ScheduleTests.create_cpu_heavy_statistical_test(machineMatrix[i][j][k], numProcessesList[k])
 
         if gWorkloadType == "io_heavy":
-            for i in range(0, 6):
+            for i in range(0, len(typeMachinesList)):
                 ScheduleTests.create_io_heavy_statistical_test(machineMatrix[i][j][k], numProcessesList[k])
 
         if gWorkloadType == "cpu_only":
-            for i in range(0, 6):
+            for i in range(0, len(typeMachinesList)):
                 ScheduleTests.create_cpu_only_statistical_test(machineMatrix[i][j][k], numProcessesList[k])
 
 #
