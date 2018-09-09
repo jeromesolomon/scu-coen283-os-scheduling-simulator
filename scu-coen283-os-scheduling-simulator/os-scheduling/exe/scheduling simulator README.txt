@@ -1,0 +1,1 @@
+This is an executable created with pyinstaller of the python based scheduling simualtor for Team J^2.  It has a simple text UI.  All output is stored in .csv files written to a 'output' subfolder.
